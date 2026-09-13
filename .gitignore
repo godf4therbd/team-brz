@@ -28,11 +28,13 @@ yarn-error.log*
 # local env files
 .env*.local
 
-# sqlite database
+# sqlite database (but keep the committed, schema-only build-time db —
+# see src/db/index.ts for why `next build` needs it)
 /data/*.db
 /data/*.db-journal
 /data/*.db-wal
 /data/*.db-shm
+!/data/build-schema.db
 
 # vercel
 .vercel
