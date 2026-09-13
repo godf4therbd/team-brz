@@ -1,15 +1,18 @@
-import Database from "better-sqlite3";
-import { drizzle } from "drizzle-orm/better-sqlite3";
+import { createClient } from "@libsql/client";
+import { drizzle } from "drizzle-orm/libsql";
 import bcrypt from "bcryptjs";
 import path from "path";
 import * as schema from "./schema";
 
-const dbPath =
-  process.env.DATABASE_URL?.replace("file:", "") ||
-  path.join(process.cwd(), "data", "teambrz.db");
+const url =
+  process.env.DATABASE_URL ||
+  `file:${path.join(process.cwd(), "data", "teambrz.db")}`;
 
-const sqlite = new Database(dbPath);
-const db = drizzle(sqlite, { schema });
+const client = createClient({
+  url,
+  authToken: process.env.DATABASE_AUTH_TOKEN,
+});
+const db = drizzle(client, { schema });
 
 function id() {
   return crypto.randomUUID();
@@ -328,7 +331,7 @@ async function main() {
   console.log("Member login (approved): nusrat@teambrz.com / password123");
   console.log("Member login (pending approval): imran@teambrz.com / password123");
 
-  sqlite.close();
+  client.close();
 }
 
 main().catch((err) => {

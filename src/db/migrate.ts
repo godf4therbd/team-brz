@@ -1,20 +1,28 @@
-import Database from "better-sqlite3";
-import { drizzle } from "drizzle-orm/better-sqlite3";
-import { migrate } from "drizzle-orm/better-sqlite3/migrator";
+import { createClient } from "@libsql/client";
+import { drizzle } from "drizzle-orm/libsql";
+import { migrate } from "drizzle-orm/libsql/migrator";
 import path from "path";
 import fs from "fs";
 
 const dataDir = path.join(process.cwd(), "data");
 if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
 
-const dbPath =
-  process.env.DATABASE_URL?.replace("file:", "") ||
-  path.join(dataDir, "teambrz.db");
+const url =
+  process.env.DATABASE_URL || `file:${path.join(dataDir, "teambrz.db")}`;
 
-const sqlite = new Database(dbPath);
-const db = drizzle(sqlite);
+const client = createClient({
+  url,
+  authToken: process.env.DATABASE_AUTH_TOKEN,
+});
+const db = drizzle(client);
 
-migrate(db, { migrationsFolder: path.join(process.cwd(), "drizzle") });
+async function main() {
+  await migrate(db, { migrationsFolder: path.join(process.cwd(), "drizzle") });
+  console.log(`Migrations applied to ${url}`);
+  client.close();
+}
 
-console.log(`Migrations applied to ${dbPath}`);
-sqlite.close();
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

@@ -1,17 +1,20 @@
-import Database from "better-sqlite3";
-import { drizzle } from "drizzle-orm/better-sqlite3";
+import { createClient } from "@libsql/client";
+import { drizzle } from "drizzle-orm/libsql";
 import path from "path";
 import * as schema from "./schema";
 
-// Single shared SQLite file for the whole app. In production you'd swap
-// this file for a hosted Postgres/MySQL connection (see README) — the
-// Drizzle query API used throughout the app stays the same either way.
-const dbPath = process.env.DATABASE_URL?.replace("file:", "") ||
-  path.join(process.cwd(), "data", "teambrz.db");
+// Works two ways with the same code:
+// - Local dev: DATABASE_URL="file:./data/teambrz.db" (no auth token needed)
+// - Netlify/Vercel/any serverless host: DATABASE_URL is a Turso "libsql://..."
+//   URL and DATABASE_AUTH_TOKEN is set — see README "Deploying to Netlify".
+const url =
+  process.env.DATABASE_URL ||
+  `file:${path.join(process.cwd(), "data", "teambrz.db")}`;
 
-const sqlite = new Database(dbPath);
-sqlite.pragma("journal_mode = WAL");
-sqlite.pragma("foreign_keys = ON");
+const client = createClient({
+  url,
+  authToken: process.env.DATABASE_AUTH_TOKEN,
+});
 
-export const db = drizzle(sqlite, { schema });
+export const db = drizzle(client, { schema });
 export * from "./schema";

@@ -10,16 +10,13 @@ that show up on rider profiles.
 - **Next.js 14** (App Router, TypeScript) — pages + API routes in one project
 - **Tailwind CSS** — dark, racing-themed styling (black / orange / checkered flag)
 - **NextAuth** (credentials provider, JWT sessions) — email + password login
-- **Drizzle ORM + SQLite** (`better-sqlite3`) — the whole database is one file
-  (`data/teambrz.db`), zero external services needed to run it
+- **Drizzle ORM + libSQL** (`@libsql/client`) — the database is a single
+  SQLite-compatible file (`data/teambrz.db`) by default, with zero external
+  services needed to run it locally. The same driver also talks to a
+  Turso database or an attached persistent volume on hosts like Railway
+  with no code changes — just a different `DATABASE_URL` (see "Deploying"
+  below)
 - **Zod** — input validation on every API route
-
-> Why SQLite instead of Prisma/Postgres? This was built in a sandboxed
-> environment that couldn't reach Prisma's binary CDN, so it uses Drizzle +
-> SQLite instead — which turned out to be a perfectly good fit for a club
-> site this size, and it means you can run the whole thing with **no
-> database server to install**. See "Moving to Postgres" below if you outgrow
-> it.
 
 ## Features
 
@@ -68,6 +65,9 @@ re-run (drop the DB file first) or edit with your club's real roster.
 
 ```
 DATABASE_URL="file:./data/teambrz.db"
+# DATABASE_AUTH_TOKEN is only needed for a remote Turso database — leave
+# it unset for local dev and for a plain file-based DATABASE_URL
+DATABASE_AUTH_TOKEN=
 NEXTAUTH_SECRET="replace-with-a-long-random-string"
 NEXTAUTH_URL="http://localhost:3000"   # your real domain in production
 ```
@@ -88,27 +88,73 @@ data/             the SQLite database file lives here (gitignored)
 
 ## Deploying
 
-The app itself deploys anywhere Next.js runs (Vercel, Railway, Render, a VPS).
-The one thing to plan for is the database:
+### Railway (recommended)
 
-- **Simplest: a host with a persistent disk** (Railway, Render, Fly.io, a
-  VPS). Point `DATABASE_URL` at a file path on that disk and it works exactly
-  like local dev. Take regular backups of the `.db` file.
-- **Serverless (Vercel) with SQLite semantics: Turso.** Turso is a hosted
-  libSQL (SQLite-compatible) database built for this. Swap the two lines in
-  `src/db/index.ts` and `src/db/migrate.ts` that create a `better-sqlite3`
-  client for `drizzle-orm/libsql` + `@libsql/client` pointed at your Turso
-  URL — the schema and every query in this app stay identical since libSQL
-  speaks the same SQL dialect.
-- **Postgres.** If you'd rather run Postgres (Neon, Supabase, RDS), change
-  `sqliteTable` → `pgTable` in `src/db/schema.ts`, swap the driver in
-  `src/db/index.ts` for `drizzle-orm/node-postgres`, and regenerate
-  migrations. More work, but Drizzle's query API you see throughout the app
-  doesn't change.
+Railway gives the app a persistent disk, which is the one thing a
+SQLite-style database needs that most serverless hosts don't offer.
 
-Either way: set `NEXTAUTH_SECRET` and `NEXTAUTH_URL` in your host's
-environment variables, and make your first admin by seeding one or by
-flipping `role` to `ADMIN` directly in the database for your own account
+1. **Create a project** on [railway.app](https://railway.app) and deploy
+   this repo (connect your GitHub repo, or `railway init` + `railway up`
+   from this folder).
+2. **Attach a Volume** to the service (Settings → Volumes → "New Volume").
+   Mount it at `/data`. This disk survives redeploys and restarts — a
+   plain container filesystem does not.
+3. **Set environment variables** on the service:
+   ```
+   DATABASE_URL=file:/data/teambrz.db
+   NEXTAUTH_SECRET=<generate with: openssl rand -base64 32>
+   NEXTAUTH_URL=https://<your-railway-domain>
+   ```
+   Leave `DATABASE_AUTH_TOKEN` unset — it's only for a remote Turso database.
+4. **Run the migration once against production** before (or right at) first
+   boot, using Railway's shell/CLI for the service:
+   ```
+   railway run npm run db:migrate
+   ```
+   This creates `/data/teambrz.db` and all tables on the mounted volume.
+5. **Don't run `npm run db:seed` in production** — it creates demo accounts
+   with the well-known password `password123`, including an admin login.
+   Instead, sign up for a real account through the site, then flip that
+   user's `role` to `ADMIN` directly in the database (Railway's DB shell,
+   or a one-off `railway run` script), or seed a single real admin record
+   yourself.
+6. Railway will run `npm run build` then `npm run start` automatically
+   (both are already in `package.json`). Take periodic backups of the
+   volume — copying `/data/teambrz.db` off the box is enough, since it's a
+   single file.
+
+The same steps work on any host with a persistent disk (Render, Fly.io, a
+plain VPS) — just adjust the volume/mount syntax and how you run one-off
+commands.
+
+### Serverless (Vercel, Netlify) with Turso
+
+Serverless functions don't have a writable, persistent filesystem, so a
+local file won't survive between requests there. The database layer
+(`@libsql/client` + `drizzle-orm/libsql`) already speaks the same protocol
+as [Turso](https://turso.tech), a hosted libSQL database — no code changes
+needed, only environment variables:
+
+```
+DATABASE_URL=libsql://<your-db>-<org>.turso.io
+DATABASE_AUTH_TOKEN=<token from `turso db tokens create <your-db>`>
+```
+
+Run `npm run db:migrate` once locally (or in CI) with those same env vars
+set, to apply the schema to the Turso database, then deploy normally.
+
+### Postgres
+
+If you'd rather run Postgres (Neon, Supabase, RDS), change `sqliteTable` →
+`pgTable` in `src/db/schema.ts`, swap the driver in `src/db/index.ts` for
+`drizzle-orm/node-postgres`, and regenerate migrations. More work, but
+Drizzle's query API you see throughout the app doesn't change.
+
+---
+
+Whichever option you pick: set `NEXTAUTH_SECRET` and `NEXTAUTH_URL` in your
+host's environment variables, and make your first admin by seeding one or
+by flipping `role` to `ADMIN` directly in the database for your own account
 after signing up.
 
 ## What else could be added
