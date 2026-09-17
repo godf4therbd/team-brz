@@ -8,6 +8,13 @@
       "when": 1788956050569,
       "tag": "0000_bouncy_nightcrawler",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1789565077440,
+      "tag": "0001_bright_cargill",
+      "breakpoints": true
     }
   ]
 }

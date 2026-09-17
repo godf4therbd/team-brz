@@ -4,6 +4,7 @@ import { z } from "zod";
 import { db, users } from "@/db";
 import { eq } from "drizzle-orm";
 import { id } from "@/lib/utils";
+import { sendVerificationEmail } from "@/lib/email";
 
 const schema = z.object({
   name: z.string().min(2).max(80),
@@ -38,6 +39,10 @@ export async function POST(req: NextRequest) {
   }
 
   const passwordHash = await bcrypt.hash(password, 10);
+  const verifyToken = id();
+  const verifyExpires = new Date(
+    Date.now() + 24 * 60 * 60 * 1000
+  ).toISOString();
 
   await db.insert(users).values({
     id: id(),
@@ -50,11 +55,17 @@ export async function POST(req: NextRequest) {
     role: "MEMBER",
     approved: false,
     verified: false,
+    emailVerified: false,
+    emailVerifyToken: verifyToken,
+    emailVerifyExpires: verifyExpires,
   });
+
+  // Don't let a slow/failed email hold up account creation.
+  sendVerificationEmail(normalizedEmail, name, verifyToken).catch(() => {});
 
   return NextResponse.json({
     ok: true,
     message:
-      "Account created! An admin needs to approve your membership before you can register for events or list items — you can still browse everything in the meantime.",
+      "Account created! Check your email to confirm your address. An admin also needs to approve your membership before you can register for events or list items — you can still browse everything in the meantime.",
   });
 }

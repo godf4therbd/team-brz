@@ -63,9 +63,17 @@ function LoginForm() {
           />
         </div>
         <div>
-          <label className="mb-1 block text-xs uppercase tracking-wide text-brz-mute">
-            Password
-          </label>
+          <div className="mb-1 flex items-center justify-between">
+            <label className="block text-xs uppercase tracking-wide text-brz-mute">
+              Password
+            </label>
+            <Link
+              href="/forgot-password"
+              className="text-xs text-brz-red hover:underline"
+            >
+              Forgot password?
+            </Link>
+          </div>
           <input
             type="password"
             required

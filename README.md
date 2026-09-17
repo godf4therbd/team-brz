@@ -37,6 +37,9 @@ that show up on rider profiles.
 - **Admin panel** (`/admin`) — approve/verify members, promote admins,
   create/edit/delete events, moderate marketplace listings, manage medal
   types and award them.
+- **Email** (via [Resend](https://resend.com), free tier) — a confirm-your-
+  address link when someone signs up, a notification when an admin verifies
+  a member's badge, and "forgot password" reset links.
 
 ## Getting started
 
@@ -70,9 +73,39 @@ DATABASE_URL="file:./data/teambrz.db"
 DATABASE_AUTH_TOKEN=
 NEXTAUTH_SECRET="replace-with-a-long-random-string"
 NEXTAUTH_URL="http://localhost:3000"   # your real domain in production
+
+# Email (signup confirmation, verified-badge notice, password reset).
+# Leave RESEND_API_KEY unset to skip sending emails — the app logs to the
+# console instead and nothing else breaks.
+RESEND_API_KEY=
+EMAIL_FROM="Team Brz <onboarding@resend.dev>"
 ```
 
 Generate a secret with `openssl rand -base64 32`.
+
+### Email verification / notifications (Resend, free)
+
+The app sends three kinds of emails through [Resend](https://resend.com):
+a "confirm your email" link at signup, a "you've been verified" notice
+when an admin flips a member's verified badge, and "forgot password"
+reset links. Resend's free tier is 100 emails/day (3,000/month), no
+credit card required.
+
+1. Sign up at [resend.com](https://resend.com) (free, no card).
+2. **API Keys** → **Create API Key** → copy it → set it as `RESEND_API_KEY`
+   in your host's environment variables (and in `.env.local` for local
+   dev).
+3. Leave `EMAIL_FROM` as `Team Brz <onboarding@resend.dev>` to start —
+   that's Resend's shared sending address and works immediately with no
+   extra setup, but emails will show "via resend.dev" to some inboxes.
+   For a cleaner from-address (e.g. `noreply@yourclubdomain.com`), add
+   your own domain under **Domains** in the Resend dashboard, verify its
+   DNS records, then set `EMAIL_FROM` to an address on that domain.
+4. Make sure `NEXTAUTH_URL` is set to your real deployed URL — it's used
+   to build the links inside these emails.
+
+If `RESEND_API_KEY` isn't set at all, the app just logs what it would
+have sent to the console instead of failing — handy for local dev.
 
 ## Project structure
 
@@ -142,6 +175,9 @@ DATABASE_AUTH_TOKEN=<token from `turso db tokens create <your-db>`>
 
 Run `npm run db:migrate` once locally (or in CI) with those same env vars
 set, to apply the schema to the Turso database, then deploy normally.
+Also set `RESEND_API_KEY` (and optionally `EMAIL_FROM`) if you want signup
+confirmation, verified-badge, and password-reset emails to actually send —
+see "Email verification / notifications" above.
 
 ### Postgres
 
