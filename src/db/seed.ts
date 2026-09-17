@@ -1,3 +1,7 @@
+import * as dotenv from "dotenv";
+// See src/db/migrate.ts for why this is needed for standalone tsx scripts.
+dotenv.config({ path: ".env.local" });
+
 import { createClient } from "@libsql/client";
 import { drizzle } from "drizzle-orm/libsql";
 import bcrypt from "bcryptjs";
