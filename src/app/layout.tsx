@@ -16,6 +16,19 @@ export const metadata: Metadata = {
     "Team Brz is a motorcycle club: join tours and meetups, track your medals, and buy or sell bikes and gear with fellow riders.",
 };
 
+// @libsql/client's HTTP driver talks to Turso using `fetch()` under the
+// hood. Next.js patches the global `fetch` during server rendering and
+// caches its responses by default — even for calls a third-party library
+// makes internally, not just ones we write ourselves. `dynamic =
+// "force-dynamic"` on a page only forces that page to render per-request;
+// it does NOT stop an individual fetch() call inside that render from
+// being served out of Next's fetch cache. That mismatch is exactly what
+// caused the admin panel to show data "one save behind": the render was
+// fresh, but the Turso HTTP call inside it was cached. Setting
+// fetchCache here, in the root layout, disables fetch caching for every
+// route in the app, so every DB read always hits Turso live.
+export const fetchCache = "force-no-store";
+
 export default function RootLayout({
   children,
 }: Readonly<{
