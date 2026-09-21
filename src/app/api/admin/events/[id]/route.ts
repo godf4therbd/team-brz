@@ -14,6 +14,7 @@ const schema = z.object({
   capacity: z.number().int().positive().nullable().optional(),
   status: z.enum(["DRAFT", "PUBLISHED", "CANCELLED"]).optional(),
   coverImage: z.string().nullable().optional(),
+  photos: z.string().nullable().optional(),
 });
 
 export async function PATCH(

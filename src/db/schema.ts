@@ -115,6 +115,10 @@ export const events = sqliteTable("events", {
   startDate: text("start_date").notNull(), // ISO datetime
   endDate: text("end_date"),
   coverImage: text("cover_image"),
+  // JSON-encoded array of image paths — a simple photo gallery for the
+  // event (e.g. tour recap photos), shown on the event detail page.
+  // Parse with JSON.parse(...) / build with JSON.stringify([...]).
+  photos: text("photos"),
   capacity: integer("capacity"),
   status: text("status", {
     enum: ["DRAFT", "PUBLISHED", "CANCELLED"],

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { photosToJson } from "@/lib/utils";
 
 type EventType = "TOUR" | "MEETUP" | "WORKSHOP" | "CHARITY" | "OTHER";
 type EventStatus = "DRAFT" | "PUBLISHED" | "CANCELLED";
@@ -29,6 +30,7 @@ export default function EventForm({
     endDate: string | null;
     capacity: number | null;
     status: EventStatus;
+    photos?: string[];
   };
 }) {
   const router = useRouter();
@@ -41,6 +43,7 @@ export default function EventForm({
     endDate: toLocalInput(initial?.endDate),
     capacity: initial?.capacity?.toString() ?? "",
     status: initial?.status ?? ("PUBLISHED" as EventStatus),
+    photosText: initial?.photos?.join("\n") ?? "",
   });
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -67,6 +70,7 @@ export default function EventForm({
       endDate: form.endDate || undefined,
       capacity: form.capacity ? parseInt(form.capacity, 10) : undefined,
       status: form.status,
+      photos: photosToJson(form.photosText),
     };
 
     const res = await fetch(
@@ -202,6 +206,23 @@ export default function EventForm({
           onChange={(e) => update("capacity", e.target.value)}
           className="field"
         />
+      </div>
+
+      <div>
+        <label className="mb-1 block text-xs uppercase tracking-wide text-brz-mute">
+          Photos (optional)
+        </label>
+        <textarea
+          rows={4}
+          value={form.photosText}
+          onChange={(e) => update("photosText", e.target.value)}
+          placeholder={"One image path per line, e.g.\n/images/tours/brz-mega-tour-1/1.jpg\n/images/tours/brz-mega-tour-1/2.jpg"}
+          className="field font-mono text-xs"
+        />
+        <p className="mt-1 text-xs text-brz-mute">
+          Shown as a photo gallery on the event page. One image path or URL
+          per line.
+        </p>
       </div>
 
       <button

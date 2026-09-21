@@ -1,10 +1,11 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getEventBySlug } from "@/lib/queries";
-import { formatDateTime } from "@/lib/utils";
+import { formatDateTime, parsePhotos } from "@/lib/utils";
 import { notFound } from "next/navigation";
 import RegisterButton from "@/components/register-button";
 import Link from "next/link";
+import Image from "next/image";
 
 export const dynamic = "force-dynamic";
 
@@ -36,6 +37,7 @@ export default async function EventDetailPage({
   const isRegistered = session
     ? event.registrations.some((r) => r.userId === session.user.id)
     : false;
+  const photos = parsePhotos(event.photos);
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-12 md:px-6">
@@ -89,6 +91,29 @@ export default async function EventDetailPage({
           isFull={isFull}
         />
       </div>
+
+      {photos.length > 0 && (
+        <div className="mt-8">
+          <h2 className="font-display text-lg font-semibold uppercase tracking-wide text-brz-white">
+            Photos from the ride
+          </h2>
+          <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+            {photos.map((src, i) => (
+              <div
+                key={i}
+                className="relative aspect-square overflow-hidden rounded-lg border border-brz-line"
+              >
+                <Image
+                  src={src}
+                  alt={`${event.title} photo ${i + 1}`}
+                  fill
+                  className="object-cover transition hover:scale-105"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {confirmed.length > 0 && (
         <div className="mt-8">

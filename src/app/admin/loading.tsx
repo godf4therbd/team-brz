@@ -1,9 +1,12 @@
-import Spinner from "@/components/spinner";
+import PageLoader from "@/components/page-loader";
 
 export default function AdminLoading() {
   return (
-    <div className="flex min-h-[40vh] items-center justify-center">
-      <Spinner size="4em" />
+    <div className="flex min-h-[40vh] flex-col items-center justify-center gap-6">
+      <PageLoader />
+      <p className="font-display text-xs uppercase tracking-widest text-brz-mute">
+        Loading
+      </p>
     </div>
   );
 }

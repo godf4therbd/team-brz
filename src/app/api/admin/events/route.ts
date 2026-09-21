@@ -15,6 +15,10 @@ const schema = z.object({
   capacity: z.number().int().positive().optional(),
   status: z.enum(["DRAFT", "PUBLISHED", "CANCELLED"]),
   coverImage: z.string().url().optional().or(z.literal("")),
+  // Pre-built JSON array string from the admin form's photo-paths textarea
+  // (see src/lib/utils.ts photosToJson) — stored as-is, not re-validated
+  // as a URL since these are usually local /images/... paths.
+  photos: z.string().nullable().optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -50,6 +54,7 @@ export async function POST(req: NextRequest) {
     capacity: d.capacity ?? null,
     status: d.status,
     coverImage: d.coverImage || null,
+    photos: d.photos || null,
     createdById: session!.user.id,
   });
 

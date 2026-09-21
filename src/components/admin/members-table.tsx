@@ -202,15 +202,22 @@ function Toggle({
 }) {
   return (
     <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
       disabled={disabled}
       onClick={() => onChange(!checked)}
       className={
-        checked
-          ? "rounded-full bg-green-600/20 px-3 py-1 text-xs font-semibold text-green-400"
-          : "rounded-full bg-brz-steel px-3 py-1 text-xs font-semibold text-brz-mute"
+        "relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors disabled:opacity-50 " +
+        (checked ? "bg-green-600" : "bg-brz-steel")
       }
     >
-      {checked ? "Yes" : "No"}
+      <span
+        className={
+          "inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform " +
+          (checked ? "translate-x-[22px]" : "translate-x-0.5")
+        }
+      />
     </button>
   );
 }

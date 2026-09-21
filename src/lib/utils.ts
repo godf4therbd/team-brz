@@ -41,3 +41,31 @@ export function formatPrice(taka: number): string {
 export function id(): string {
   return crypto.randomUUID();
 }
+
+/** Parses an event's `photos` column (JSON array of image paths, or null)
+ * into a plain string array. Never throws — bad/missing data just yields
+ * an empty gallery instead of crashing the page. */
+export function parsePhotos(photos: string | null | undefined): string[] {
+  if (!photos) return [];
+  try {
+    const parsed = JSON.parse(photos);
+    return Array.isArray(parsed)
+      ? parsed.filter(
+          (p): p is string => typeof p === "string" && p.trim().length > 0
+        )
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+/** Turns admin-form textarea input (one image path/URL per line) into the
+ * JSON string stored in the `photos` column. Returns null when empty so
+ * we store NULL rather than "[]" for events with no gallery. */
+export function photosToJson(text: string): string | null {
+  const lines = text
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean);
+  return lines.length ? JSON.stringify(lines) : null;
+}

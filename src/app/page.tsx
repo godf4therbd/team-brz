@@ -18,22 +18,23 @@ export default async function Home() {
       <section className="relative overflow-hidden border-b border-brz-line">
         <div className="absolute inset-0">
           <Image
-            src="/images/hero.png"
-            alt="Team Brz rider"
+            src="/images/hero.jpg"
+            alt="Team Brz crew"
             fill
             priority
-            className="object-cover object-[70%_center] opacity-40"
+            className="object-cover object-[50%_30%] opacity-90"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-brz-black via-brz-black/90 to-brz-black/40" />
+          <div className="absolute inset-0 bg-gradient-to-r from-brz-black/45 via-brz-black/20 to-brz-black/10" />
+          <div className="absolute inset-0 bg-gradient-to-t from-brz-black/70 via-transparent to-transparent" />
         </div>
         <div className="relative mx-auto max-w-6xl px-4 py-28 md:px-6 md:py-40">
           <span className="badge border border-brz-red/50 bg-brz-red/10 text-brz-red">
             🏁 Riders since day one
           </span>
-          <h1 className="mt-6 max-w-3xl font-display text-6xl font-bold uppercase leading-[0.95] tracking-tight text-brz-white md:text-8xl">
+          <h1 className="mt-6 max-w-3xl font-display text-6xl font-bold uppercase leading-[0.95] tracking-tight text-brz-white [text-shadow:0_2px_24px_rgba(0,0,0,0.85)] md:text-8xl">
             We ride <span className="text-brz-red">together</span>
           </h1>
-          <p className="mt-6 max-w-xl text-lg text-brz-mute">
+          <p className="mt-6 max-w-xl text-lg text-brz-white [text-shadow:0_2px_12px_rgba(0,0,0,0.9)]">
             A riding family, not just a club. Join tours across the country,
             earn your medals, and trade gear with people who actually ride.
           </p>
@@ -58,6 +59,14 @@ export default async function Home() {
       {/* Welcome / stats */}
       <section className="mx-auto max-w-6xl px-4 py-16 md:px-6 md:py-24">
         <div className="grid gap-12 md:grid-cols-2 md:gap-16">
+          <div className="relative aspect-[4/3] overflow-hidden rounded-xl border border-brz-line">
+            <Image
+              src="/images/about.jpg"
+              alt="Team Brz riders stopped on a hill tour"
+              fill
+              className="object-cover"
+            />
+          </div>
           <div>
             <span className="badge border border-brz-red/40 bg-brz-red/10 text-brz-red">
               Who we are
@@ -78,11 +87,11 @@ export default async function Home() {
             >
               Become one of us →
             </Link>
-          </div>
-          <div className="grid grid-cols-3 gap-4 sm:gap-6">
-            <BigStat value={stats.members} label="Verified riders" />
-            <BigStat value={stats.events} label="Events run" />
-            <BigStat value={stats.listings} label="Marketplace listings" />
+            <div className="mt-8 grid grid-cols-3 gap-4 sm:gap-6">
+              <BigStat value={stats.members} label="Verified riders" />
+              <BigStat value={stats.events} label="Events run" />
+              <BigStat value={stats.listings} label="Marketplace listings" />
+            </div>
           </div>
         </div>
       </section>
@@ -136,17 +145,13 @@ export default async function Home() {
             See all rides →
           </Link>
         </div>
-        <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-6">
-          {["🏍️", "🛣️", "⛰️", "🏁", "🔧", "🌄"].map((icon, i) => (
-            <div
-              key={i}
-              className="card group flex aspect-square items-center justify-center text-3xl transition hover:border-brz-red"
-            >
-              <span className="opacity-60 transition group-hover:opacity-100">
-                {icon}
-              </span>
-            </div>
-          ))}
+        <div className="relative mt-8 aspect-[21/9] overflow-hidden rounded-xl border border-brz-line">
+          <Image
+            src="/images/gallery-1.jpg"
+            alt="Team Brz riders on a highway meetup"
+            fill
+            className="object-cover"
+          />
         </div>
       </section>
 

@@ -1,9 +1,12 @@
-import Spinner from "@/components/spinner";
+import PageLoader from "@/components/page-loader";
 
 export default function Loading() {
   return (
-    <div className="flex min-h-[60vh] items-center justify-center">
-      <Spinner size="5em" />
+    <div className="flex min-h-[60vh] flex-col items-center justify-center gap-6">
+      <PageLoader />
+      <p className="font-display text-xs uppercase tracking-widest text-brz-mute">
+        Loading
+      </p>
     </div>
   );
 }

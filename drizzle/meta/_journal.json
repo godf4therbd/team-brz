@@ -15,6 +15,13 @@
       "when": 1789565077440,
       "tag": "0001_bright_cargill",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1789994318187,
+      "tag": "0002_puzzling_prism",
+      "breakpoints": true
     }
   ]
 }
