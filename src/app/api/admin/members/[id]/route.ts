@@ -34,11 +34,42 @@ export async function PATCH(
     where: eq(users.id, params.id),
   });
 
-  await db.update(users).set(parsed.data).where(eq(users.id, params.id));
+  if (!before) {
+    return NextResponse.json(
+      { error: `No member found with id ${params.id}.` },
+      { status: 404 }
+    );
+  }
 
-  if (before && !before.verified && parsed.data.verified === true) {
+  const result = await db
+    .update(users)
+    .set(parsed.data)
+    .where(eq(users.id, params.id));
+
+  // libsql's ResultSet reports how many rows the UPDATE actually
+  // touched. If this is 0 despite `before` existing a moment ago,
+  // something is wrong with the write itself (not a permissions or
+  // "member not found" issue) — surface it instead of silently
+  // reporting success.
+  const rowsAffected = (result as unknown as { rowsAffected?: number })
+    .rowsAffected;
+  console.log("PATCH /api/admin/members/[id]", {
+    id: params.id,
+    data: parsed.data,
+    rowsAffected,
+  });
+  if (rowsAffected === 0) {
+    return NextResponse.json(
+      {
+        error: `Update matched 0 rows for id ${params.id} even though the member exists. Check server logs.`,
+      },
+      { status: 500 }
+    );
+  }
+
+  if (!before.verified && parsed.data.verified === true) {
     sendVerifiedBadgeEmail(before.email, before.name).catch(() => {});
   }
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, rowsAffected });
 }

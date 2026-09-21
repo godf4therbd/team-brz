@@ -36,14 +36,24 @@ export default function MembersTable({
   const [selectedMedal, setSelectedMedal] = useState<string>(
     medals[0]?.id ?? ""
   );
+  const [error, setError] = useState<string | null>(null);
 
   async function patch(id: string, data: Record<string, unknown>) {
     setBusyId(id);
-    await fetch(`/api/admin/members/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin/members/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      const payload = await res.json().catch(() => null);
+      if (!res.ok) {
+        setError(payload?.error || `Update failed (${res.status}).`);
+      }
+    } catch {
+      setError("Network error — update may not have saved.");
+    }
     setBusyId(null);
     router.refresh();
   }
@@ -73,6 +83,11 @@ export default function MembersTable({
 
   return (
     <div className="mt-5 overflow-x-auto">
+      {error && (
+        <p className="mb-3 rounded-md border border-red-800 bg-red-950/50 px-3 py-2 text-sm text-red-300">
+          {error}
+        </p>
+      )}
       <table className="w-full min-w-[840px] border-collapse text-sm">
         <thead>
           <tr className="border-b border-brz-line text-left text-xs uppercase tracking-wide text-brz-mute">

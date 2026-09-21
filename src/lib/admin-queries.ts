@@ -2,7 +2,25 @@ import { db, users, events, listings } from "@/db";
 import { desc } from "drizzle-orm";
 
 export async function getAllMembersAdmin() {
+  // IMPORTANT: this result is passed straight into a Client Component
+  // (MembersTable), so whatever columns we select here get serialized
+  // and shipped to the browser. Never select passwordHash or the
+  // verify/reset tokens — only the fields the admin table actually
+  // displays or needs.
   return db.query.users.findMany({
+    columns: {
+      id: true,
+      name: true,
+      email: true,
+      phone: true,
+      bikeModel: true,
+      city: true,
+      role: true,
+      approved: true,
+      verified: true,
+      emailVerified: true,
+      joinedAt: true,
+    },
     orderBy: [desc(users.joinedAt)],
     with: { medals: { with: { medal: true } } },
   });
