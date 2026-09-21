@@ -86,3 +86,31 @@ export async function getStats() {
     listings: listingRows.length,
   };
 }
+
+// Used by the homepage "Meet the crew" section. Only selects public-facing
+// columns (never passwordHash/tokens) since this is passed straight into
+// page markup. Admins first, then verified members, newest first.
+export async function getFeaturedMembers(limit = 4) {
+  const rows = await db.query.users.findMany({
+    where: eq(users.approved, true),
+    columns: {
+      id: true,
+      name: true,
+      avatarUrl: true,
+      bikeModel: true,
+      city: true,
+      role: true,
+      verified: true,
+      joinedAt: true,
+    },
+    orderBy: [desc(users.joinedAt)],
+  });
+
+  return rows
+    .sort((a, b) => {
+      const rank = (m: (typeof rows)[number]) =>
+        m.role === "ADMIN" ? 0 : m.verified ? 1 : 2;
+      return rank(a) - rank(b);
+    })
+    .slice(0, limit);
+}

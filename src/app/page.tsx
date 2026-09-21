@@ -1,14 +1,15 @@
 import Link from "next/link";
 import Image from "next/image";
-import { getUpcomingEvents, getStats } from "@/lib/queries";
+import { getUpcomingEvents, getStats, getFeaturedMembers } from "@/lib/queries";
 import EventCard from "@/components/event-card";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const [upcoming, stats] = await Promise.all([
+  const [upcoming, stats, crew] = await Promise.all([
     getUpcomingEvents(3),
     getStats(),
+    getFeaturedMembers(4),
   ]);
 
   return (
@@ -25,75 +26,181 @@ export default async function Home() {
           />
           <div className="absolute inset-0 bg-gradient-to-r from-brz-black via-brz-black/90 to-brz-black/40" />
         </div>
-        <div className="relative mx-auto max-w-6xl px-4 py-24 md:px-6 md:py-36">
+        <div className="relative mx-auto max-w-6xl px-4 py-28 md:px-6 md:py-40">
           <span className="badge border border-brz-red/50 bg-brz-red/10 text-brz-red">
             🏁 Riders since day one
           </span>
-          <h1 className="mt-5 max-w-2xl font-display text-5xl font-bold uppercase leading-[1.05] tracking-tight text-brz-white md:text-7xl">
-            Team <span className="text-brz-red">Brz</span>
+          <h1 className="mt-6 max-w-3xl font-display text-6xl font-bold uppercase leading-[0.95] tracking-tight text-brz-white md:text-8xl">
+            We ride <span className="text-brz-red">together</span>
           </h1>
-          <p className="mt-5 max-w-xl text-lg text-brz-mute">
+          <p className="mt-6 max-w-xl text-lg text-brz-mute">
             A riding family, not just a club. Join tours across the country,
             earn your medals, and trade gear with people who actually ride.
           </p>
           <div className="mt-8 flex flex-wrap gap-4">
             <Link
-              href="/register"
-              className="rounded-md bg-brz-red px-6 py-3 font-display text-sm font-bold uppercase tracking-wider text-brz-black transition hover:bg-brz-amber"
+              href="/events"
+              className="rounded-md bg-brz-red px-8 py-3.5 font-display text-sm font-bold uppercase tracking-wider text-brz-black transition hover:bg-brz-amber"
             >
-              Join the club
+              Explore our rides
             </Link>
             <Link
-              href="/events"
-              className="rounded-md border border-brz-line px-6 py-3 font-display text-sm font-bold uppercase tracking-wider text-brz-white transition hover:border-brz-red hover:text-brz-red"
+              href="/register"
+              className="rounded-md border border-brz-line px-8 py-3.5 font-display text-sm font-bold uppercase tracking-wider text-brz-white transition hover:border-brz-red hover:text-brz-red"
             >
-              See upcoming events
+              Join the club
             </Link>
           </div>
         </div>
         <div className="h-1.5 checker-flag-red" />
       </section>
 
-      {/* Stats */}
-      <section className="mx-auto max-w-6xl px-4 py-12 md:px-6">
-        <div className="grid grid-cols-3 divide-x divide-brz-line rounded-xl border border-brz-line bg-brz-charcoal text-center">
-          <Stat value={stats.members} label="Verified riders" />
-          <Stat value={stats.events} label="Events run" />
-          <Stat value={stats.listings} label="Marketplace listings" />
+      {/* Welcome / stats */}
+      <section className="mx-auto max-w-6xl px-4 py-16 md:px-6 md:py-24">
+        <div className="grid gap-12 md:grid-cols-2 md:gap-16">
+          <div>
+            <span className="badge border border-brz-red/40 bg-brz-red/10 text-brz-red">
+              Who we are
+            </span>
+            <h2 className="mt-4 font-display text-3xl font-bold uppercase leading-tight tracking-wide text-brz-white md:text-4xl">
+              Built by riders, run by riders
+            </h2>
+            <p className="mt-4 text-brz-mute">
+              Team Brz started with a handful of people who&rsquo;d rather be on
+              the road than anywhere else. Today it&rsquo;s a full riding family —
+              real members, admin-reviewed profiles, organized tours, and a
+              marketplace you can actually trust. No fake accounts, no
+              gatekeeping, just riders looking out for riders.
+            </p>
+            <Link
+              href="/register"
+              className="mt-6 inline-flex items-center gap-2 font-display text-sm font-bold uppercase tracking-wider text-brz-red hover:text-brz-amber"
+            >
+              Become one of us →
+            </Link>
+          </div>
+          <div className="grid grid-cols-3 gap-4 sm:gap-6">
+            <BigStat value={stats.members} label="Verified riders" />
+            <BigStat value={stats.events} label="Events run" />
+            <BigStat value={stats.listings} label="Marketplace listings" />
+          </div>
         </div>
       </section>
 
-      {/* What you get */}
-      <section className="mx-auto max-w-6xl px-4 py-8 md:px-6">
-        <h2 className="font-display text-3xl font-bold uppercase tracking-wide text-brz-white">
-          Why ride with us
-        </h2>
-        <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          <Feature
-            icon="🗺️"
-            title="Tours & meetups"
-            desc="Register for group tours, city meetups, and workshops — see who else is riding."
-          />
-          <Feature
-            icon="🎖️"
-            title="Medals & rank"
-            desc="Host a ride, lead a tour, hit a milestone — admins award medals that show on your profile."
-          />
-          <Feature
-            icon="🛠️"
-            title="Buy & sell"
-            desc="A trusted marketplace for bikes and gear — engine oil, helmets, and more — between verified riders."
-          />
-          <Feature
-            icon="✅"
-            title="Verified members"
-            desc="Every profile is reviewed and approved by admins, so you know you're riding with real people."
-          />
+      {/* Missions */}
+      <section className="border-y border-brz-line bg-brz-charcoal/40">
+        <div className="mx-auto max-w-6xl px-4 py-16 md:px-6">
+          <h2 className="text-center font-display text-3xl font-bold uppercase tracking-wide text-brz-white">
+            What we do
+          </h2>
+          <p className="mx-auto mt-3 max-w-lg text-center text-brz-mute">
+            Everything Team Brz offers, built around one idea: get more
+            people on the road, safely, together.
+          </p>
+          <div className="mt-10 grid gap-6 sm:grid-cols-3">
+            <Mission
+              icon={<IconRoute />}
+              title="Group rides"
+              desc="Tours, city meetups, and workshops — register in a click and see who else is riding."
+            />
+            <Mission
+              icon={<IconShield />}
+              title="Verified community"
+              desc="Every profile is reviewed and approved by admins, so you always know who you're riding with."
+            />
+            <Mission
+              icon={<IconTag />}
+              title="Trusted marketplace"
+              desc="Buy and sell bikes and gear directly with fellow verified riders — no strangers, no scams."
+            />
+          </div>
         </div>
       </section>
+
+      {/* Ride gallery */}
+      <section className="mx-auto max-w-6xl px-4 py-16 md:px-6">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <h2 className="font-display text-3xl font-bold uppercase tracking-wide text-brz-white">
+              From the road
+            </h2>
+            <p className="mt-2 text-brz-mute">
+              Moments from past tours and meetups — more added after every
+              ride.
+            </p>
+          </div>
+          <Link
+            href="/events"
+            className="text-sm font-semibold uppercase tracking-wide text-brz-red hover:text-brz-amber"
+          >
+            See all rides →
+          </Link>
+        </div>
+        <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-6">
+          {["🏍️", "🛣️", "⛰️", "🏁", "🔧", "🌄"].map((icon, i) => (
+            <div
+              key={i}
+              className="card group flex aspect-square items-center justify-center text-3xl transition hover:border-brz-red"
+            >
+              <span className="opacity-60 transition group-hover:opacity-100">
+                {icon}
+              </span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Meet the crew */}
+      {crew.length > 0 && (
+        <section className="border-y border-brz-line bg-brz-charcoal/40">
+          <div className="mx-auto max-w-6xl px-4 py-16 md:px-6">
+            <h2 className="font-display text-3xl font-bold uppercase tracking-wide text-brz-white">
+              Meet the crew
+            </h2>
+            <p className="mt-2 text-brz-mute">
+              A few of the riders keeping Team Brz on the road.
+            </p>
+            <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {crew.map((m) => (
+                <div key={m.id} className="card p-5 text-center">
+                  <div className="mx-auto flex h-20 w-20 items-center justify-center overflow-hidden rounded-full bg-brz-steel text-2xl font-bold text-brz-red">
+                    {m.avatarUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={m.avatarUrl}
+                        alt={m.name}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      m.name.charAt(0).toUpperCase()
+                    )}
+                  </div>
+                  <p className="mt-4 font-display font-semibold uppercase tracking-wide text-brz-white">
+                    {m.name}
+                  </p>
+                  <p className="mt-1 text-xs uppercase tracking-wide text-brz-red">
+                    {m.role === "ADMIN" ? "Admin" : "Member"}
+                  </p>
+                  <p className="mt-2 text-xs text-brz-mute">
+                    {[m.bikeModel, m.city].filter(Boolean).join(" · ") || "—"}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <div className="mt-8 text-center">
+              <Link
+                href="/members"
+                className="font-display text-sm font-bold uppercase tracking-wider text-brz-red hover:text-brz-amber"
+              >
+                View all members →
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Upcoming events */}
-      <section className="mx-auto max-w-6xl px-4 py-12 md:px-6">
+      <section className="mx-auto max-w-6xl px-4 py-16 md:px-6">
         <div className="flex items-center justify-between">
           <h2 className="font-display text-3xl font-bold uppercase tracking-wide text-brz-white">
             Upcoming rides
@@ -116,6 +223,37 @@ export default async function Home() {
             Nothing on the calendar right now — check back soon.
           </p>
         )}
+      </section>
+
+      {/* Testimonials */}
+      {/*
+        Sample/placeholder quotes — swap these for real member quotes
+        (with their permission) whenever you have some. First names only,
+        not tied to any real member record.
+      */}
+      <section className="border-y border-brz-line bg-brz-charcoal/40">
+        <div className="mx-auto max-w-6xl px-4 py-16 md:px-6">
+          <h2 className="text-center font-display text-3xl font-bold uppercase tracking-wide text-brz-white">
+            What our members say
+          </h2>
+          <div className="mt-10 grid gap-6 md:grid-cols-3">
+            <Testimonial
+              quote="Found this club through a friend and never looked back. The tours are organized properly, and everyone actually rides."
+              name="Tanvir"
+              detail="Member since 2023"
+            />
+            <Testimonial
+              quote="Sold my old helmet and bought a jacket through the marketplace — both from verified members. Way better than random Facebook groups."
+              name="Nusrat"
+              detail="Member since 2024"
+            />
+            <Testimonial
+              quote="Earned my first medal on the hill-tour last year. This club actually recognizes the riders who show up."
+              name="Fahim"
+              detail="Member since 2022"
+            />
+          </div>
+        </div>
       </section>
 
       {/* CTA */}
@@ -141,35 +279,113 @@ export default async function Home() {
   );
 }
 
-function Stat({ value, label }: { value: number; label: string }) {
+function BigStat({ value, label }: { value: number; label: string }) {
   return (
-    <div className="px-4 py-8">
-      <div className="font-display text-4xl font-bold text-brz-red">
+    <div>
+      <div className="font-display text-5xl font-bold text-brz-white md:text-6xl">
         {value}
       </div>
-      <div className="mt-1 text-xs uppercase tracking-wide text-brz-mute">
+      <div className="mt-2 h-1 w-10 bg-brz-red" />
+      <div className="mt-2 text-xs uppercase tracking-wide text-brz-mute">
         {label}
       </div>
     </div>
   );
 }
 
-function Feature({
+function Mission({
   icon,
   title,
   desc,
 }: {
-  icon: string;
+  icon: React.ReactNode;
   title: string;
   desc: string;
 }) {
   return (
-    <div className="card p-5">
-      <div className="text-3xl">{icon}</div>
-      <h3 className="mt-3 font-display text-lg font-semibold uppercase tracking-wide text-brz-white">
+    <div className="card p-6 text-center">
+      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-brz-red/40 bg-brz-red/10 text-brz-red">
+        {icon}
+      </div>
+      <h3 className="mt-4 font-display text-lg font-semibold uppercase tracking-wide text-brz-white">
         {title}
       </h3>
       <p className="mt-2 text-sm text-brz-mute">{desc}</p>
     </div>
+  );
+}
+
+function Testimonial({
+  quote,
+  name,
+  detail,
+}: {
+  quote: string;
+  name: string;
+  detail: string;
+}) {
+  return (
+    <div className="card p-6">
+      <p className="text-brz-mute">&ldquo;{quote}&rdquo;</p>
+      <p className="mt-4 font-display text-sm font-semibold uppercase tracking-wide text-brz-white">
+        {name}
+      </p>
+      <p className="text-xs text-brz-mute">{detail}</p>
+    </div>
+  );
+}
+
+function IconRoute() {
+  return (
+    <svg
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="6" cy="19" r="2" />
+      <circle cx="18" cy="5" r="2" />
+      <path d="M8 19h5a4 4 0 0 0 4-4V9a4 4 0 0 1 4-4" strokeDasharray="2 3" />
+    </svg>
+  );
+}
+
+function IconShield() {
+  return (
+    <svg
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z" />
+      <path d="M9 12l2 2 4-4" />
+    </svg>
+  );
+}
+
+function IconTag() {
+  return (
+    <svg
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M20 12l-8 8-9-9V4h7l10 10z" />
+      <circle cx="7.5" cy="7.5" r="1.25" fill="currentColor" stroke="none" />
+    </svg>
   );
 }
