@@ -15,44 +15,48 @@ export default async function Home() {
   return (
     <div>
       {/* Hero */}
-      <section className="border-b border-brz-line bg-brz-black">
-        {/* Full photo, never cropped — scales to the full width on any
-            device, mobile or desktop, at its natural aspect ratio. */}
-        <div className="relative">
+      <section className="relative overflow-hidden border-b border-brz-line">
+        {/* Capped height so this stays a banner on any screen — on a wide
+            monitor, scaling the photo to the full viewport width at its
+            natural aspect ratio made it enormously tall, pushing the crew
+            almost entirely below the fold. Text sits overlaid on the photo
+            (not below it), with a shadow/gradient behind it for contrast. */}
+        <div className="relative h-[460px] sm:h-[520px] md:h-[600px] lg:h-[640px] xl:h-[680px]">
           <Image
             src="/images/hero.jpg"
             alt="Team Brz crew"
-            width={2048}
-            height={1663}
+            fill
             priority
-            className="h-auto w-full"
+            className="object-cover object-[50%_38%]"
           />
-          <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-brz-black to-transparent" />
-        </div>
-        <div className="relative mx-auto max-w-6xl px-4 py-10 md:px-6 md:py-14">
-          <span className="badge border border-brz-red/50 bg-brz-red/10 text-brz-red">
-            🏁 Riders since day one
-          </span>
-          <h1 className="mt-6 max-w-3xl font-display text-5xl font-bold uppercase leading-[0.95] tracking-tight text-brz-white md:text-7xl">
-            We ride <span className="text-brz-red">together</span>
-          </h1>
-          <p className="mt-6 max-w-xl text-lg text-brz-mute">
-            A riding family, not just a club. Join tours across the country,
-            earn your medals, and trade gear with people who actually ride.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-4">
-            <Link
-              href="/events"
-              className="rounded-md bg-brz-red px-8 py-3.5 font-display text-sm font-bold uppercase tracking-wider text-brz-black transition hover:bg-brz-amber"
-            >
-              Explore our rides
-            </Link>
-            <Link
-              href="/register"
-              className="rounded-md border border-brz-line px-8 py-3.5 font-display text-sm font-bold uppercase tracking-wider text-brz-white transition hover:border-brz-red hover:text-brz-red"
-            >
-              Join the club
-            </Link>
+          <div className="absolute inset-0 bg-gradient-to-r from-brz-black/75 via-brz-black/35 to-brz-black/10" />
+          <div className="absolute inset-0 bg-gradient-to-t from-brz-black/70 via-transparent to-transparent" />
+
+          <div className="absolute inset-0 mx-auto flex max-w-6xl flex-col justify-center px-4 md:px-6">
+            <span className="badge w-fit border border-brz-red/50 bg-brz-red/10 text-brz-red">
+              🏁 Riders since day one
+            </span>
+            <h1 className="mt-6 max-w-3xl font-display text-5xl font-bold uppercase leading-[0.95] tracking-tight text-brz-white [text-shadow:0_2px_24px_rgba(0,0,0,0.85)] md:text-7xl">
+              We ride <span className="text-brz-red">together</span>
+            </h1>
+            <p className="mt-6 max-w-xl text-lg text-brz-white [text-shadow:0_2px_12px_rgba(0,0,0,0.9)]">
+              A riding family, not just a club. Join tours across the country,
+              earn your medals, and trade gear with people who actually ride.
+            </p>
+            <div className="mt-8 flex flex-wrap gap-4">
+              <Link
+                href="/events"
+                className="rounded-md bg-brz-red px-8 py-3.5 font-display text-sm font-bold uppercase tracking-wider text-brz-black transition hover:bg-brz-amber"
+              >
+                Explore our rides
+              </Link>
+              <Link
+                href="/register"
+                className="rounded-md border border-brz-line px-8 py-3.5 font-display text-sm font-bold uppercase tracking-wider text-brz-white transition hover:border-brz-red hover:text-brz-red"
+              >
+                Join the club
+              </Link>
+            </div>
           </div>
         </div>
         <div className="h-1.5 checker-flag-red" />
