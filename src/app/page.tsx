@@ -15,26 +15,28 @@ export default async function Home() {
   return (
     <div>
       {/* Hero */}
-      <section className="relative overflow-hidden border-b border-brz-line">
-        <div className="absolute inset-0">
+      <section className="border-b border-brz-line bg-brz-black">
+        {/* Full photo, never cropped — scales to the full width on any
+            device, mobile or desktop, at its natural aspect ratio. */}
+        <div className="relative">
           <Image
             src="/images/hero.jpg"
             alt="Team Brz crew"
-            fill
+            width={2048}
+            height={1663}
             priority
-            className="object-cover object-[50%_30%] opacity-90"
+            className="h-auto w-full"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-brz-black/45 via-brz-black/20 to-brz-black/10" />
-          <div className="absolute inset-0 bg-gradient-to-t from-brz-black/70 via-transparent to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-brz-black to-transparent" />
         </div>
-        <div className="relative mx-auto max-w-6xl px-4 py-28 md:px-6 md:py-40">
+        <div className="relative mx-auto max-w-6xl px-4 py-10 md:px-6 md:py-14">
           <span className="badge border border-brz-red/50 bg-brz-red/10 text-brz-red">
             🏁 Riders since day one
           </span>
-          <h1 className="mt-6 max-w-3xl font-display text-6xl font-bold uppercase leading-[0.95] tracking-tight text-brz-white [text-shadow:0_2px_24px_rgba(0,0,0,0.85)] md:text-8xl">
+          <h1 className="mt-6 max-w-3xl font-display text-5xl font-bold uppercase leading-[0.95] tracking-tight text-brz-white md:text-7xl">
             We ride <span className="text-brz-red">together</span>
           </h1>
-          <p className="mt-6 max-w-xl text-lg text-brz-white [text-shadow:0_2px_12px_rgba(0,0,0,0.9)]">
+          <p className="mt-6 max-w-xl text-lg text-brz-mute">
             A riding family, not just a club. Join tours across the country,
             earn your medals, and trade gear with people who actually ride.
           </p>
