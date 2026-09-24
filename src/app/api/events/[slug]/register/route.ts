@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db, events, eventRegistrations } from "@/db";
-import { and, eq } from "drizzle-orm";
+import { and, count, eq } from "drizzle-orm";
 import { id as genId } from "@/lib/utils";
 
 export async function POST(
@@ -22,7 +22,6 @@ export async function POST(
 
   const event = await db.query.events.findFirst({
     where: eq(events.slug, params.slug),
-    with: { registrations: true },
   });
   if (!event) {
     return NextResponse.json({ error: "Event not found." }, { status: 404 });
@@ -34,34 +33,60 @@ export async function POST(
     );
   }
 
-  const existing = event.registrations.find(
-    (r) => r.userId === session.user.id
-  );
-  if (existing) {
+  // The capacity check and the insert used to be two separate steps (read
+  // the current count, then decide CONFIRMED vs PENDING, then write) with
+  // a gap in between where two people registering at the same instant
+  // could both read "one spot left" and both get seated, overfilling the
+  // event. Doing the read and the write inside one transaction closes
+  // that gap — SQLite/libSQL serializes writers, so the count a second
+  // concurrent request sees can't be stale.
+  const registrationStatus = await db.transaction(async (tx) => {
+    const existing = await tx.query.eventRegistrations.findFirst({
+      where: and(
+        eq(eventRegistrations.eventId, event.id),
+        eq(eventRegistrations.userId, session.user.id)
+      ),
+    });
+    if (existing) {
+      return "ALREADY_REGISTERED" as const;
+    }
+
+    const [{ value: confirmedCount }] = await tx
+      .select({ value: count() })
+      .from(eventRegistrations)
+      .where(
+        and(
+          eq(eventRegistrations.eventId, event.id),
+          eq(eventRegistrations.status, "CONFIRMED")
+        )
+      );
+    const isFull = event.capacity != null && confirmedCount >= event.capacity;
+    const status = isFull ? "PENDING" : "CONFIRMED";
+
+    await tx.insert(eventRegistrations).values({
+      id: genId(),
+      eventId: event.id,
+      userId: session.user.id,
+      status,
+    });
+
+    return status;
+  });
+
+  if (registrationStatus === "ALREADY_REGISTERED") {
     return NextResponse.json(
       { error: "You're already registered for this event." },
       { status: 409 }
     );
   }
 
-  const confirmedCount = event.registrations.filter(
-    (r) => r.status === "CONFIRMED"
-  ).length;
-  const isFull = event.capacity != null && confirmedCount >= event.capacity;
-
-  await db.insert(eventRegistrations).values({
-    id: genId(),
-    eventId: event.id,
-    userId: session.user.id,
-    status: isFull ? "PENDING" : "CONFIRMED",
-  });
-
   return NextResponse.json({
     ok: true,
-    status: isFull ? "PENDING" : "CONFIRMED",
-    message: isFull
-      ? "Event is at capacity — you've been added to the waitlist."
-      : "You're registered! See you there.",
+    status: registrationStatus,
+    message:
+      registrationStatus === "PENDING"
+        ? "Event is at capacity — you've been added to the waitlist."
+        : "You're registered! See you there.",
   });
 }
 

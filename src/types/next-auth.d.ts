@@ -27,5 +27,8 @@ declare module "next-auth/jwt" {
     approved: boolean;
     verified: boolean;
     avatarUrl?: string;
+    // Timestamp (Date.now()) of the last time this token's role/approved/
+    // verified fields were reloaded from the DB — see lib/auth.ts jwt().
+    refreshedAt?: number;
   }
 }

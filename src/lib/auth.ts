@@ -30,6 +30,14 @@ export const authOptions: NextAuthOptions = {
         );
         if (!valid) return null;
 
+        if (!user.emailVerified) {
+          // A distinct message (rather than returning null, which NextAuth
+          // reports as the generic "CredentialsSignin") so the login page
+          // can tell this apart from a wrong password and point the person
+          // at their inbox instead.
+          throw new Error("EMAIL_NOT_VERIFIED");
+        }
+
         return {
           id: user.id,
           name: user.name,
@@ -50,11 +58,23 @@ export const authOptions: NextAuthOptions = {
         token.approved = user.approved;
         token.verified = user.verified;
         token.avatarUrl = user.avatarUrl;
+        token.refreshedAt = Date.now();
+        return token;
       }
-      // Refresh flags from DB on every request update trigger, so an
-      // admin approving/verifying a member takes effect without forcing
-      // that member to log out and back in.
-      if (trigger === "update" || !user) {
+
+      // `user` is only set on the initial sign-in — every other call here
+      // (one per request that reads the session) previously had `!user`
+      // true unconditionally, so it hit the database on every single
+      // request. Instead, refresh from the DB immediately when an admin
+      // action calls `update()` (so approving/verifying a member takes
+      // effect without forcing a logout), and otherwise at most once per
+      // refresh window so ordinary page loads reuse the token.
+      const REFRESH_INTERVAL_MS = 5 * 60 * 1000;
+      const refreshedAt = (token.refreshedAt as number | undefined) ?? 0;
+      const needsRefresh =
+        trigger === "update" || Date.now() - refreshedAt > REFRESH_INTERVAL_MS;
+
+      if (needsRefresh) {
         const fresh = await db.query.users.findFirst({
           where: eq(users.id, token.id as string),
         });
@@ -65,6 +85,7 @@ export const authOptions: NextAuthOptions = {
           token.avatarUrl = fresh.avatarUrl ?? undefined;
           token.name = fresh.name;
         }
+        token.refreshedAt = Date.now();
       }
       return token;
     },

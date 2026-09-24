@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db, users } from "@/db";
 import { eq } from "drizzle-orm";
-import { id } from "@/lib/utils";
+import { id, hashToken } from "@/lib/utils";
 import { sendPasswordResetEmail } from "@/lib/email";
 
 const schema = z.object({ email: z.string().email() });
@@ -22,9 +22,10 @@ export async function POST(req: NextRequest) {
   if (user) {
     const token = id();
     const expires = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+    // Only the hash is stored — see hashToken() in lib/utils.
     await db
       .update(users)
-      .set({ resetToken: token, resetExpires: expires })
+      .set({ resetToken: hashToken(token), resetExpires: expires })
       .where(eq(users.id, user.id));
     sendPasswordResetEmail(user.email, user.name, token).catch(() => {});
   }

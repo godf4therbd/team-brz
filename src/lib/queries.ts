@@ -1,5 +1,21 @@
 import { db, events, listings, users } from "@/db";
-import { and, desc, eq, gte, lt } from "drizzle-orm";
+import { and, count, desc, eq, gte, lt } from "drizzle-orm";
+
+// Reused everywhere a query pulls in a related `users` row (seller,
+// registrant, event creator) just to show a name/badge — restricts the
+// join to public-facing columns so passwordHash/reset/verify tokens never
+// get loaded into a result that might later get passed to a Client
+// Component. See the same note on getAllMembersAdmin in admin-queries.ts.
+const publicUserColumns = {
+  id: true,
+  name: true,
+  avatarUrl: true,
+  bikeModel: true,
+  city: true,
+  role: true,
+  verified: true,
+  phone: true,
+} as const;
 
 export async function getUpcomingEvents(limit?: number) {
   const now = new Date().toISOString();
@@ -27,8 +43,10 @@ export async function getEventBySlug(slug: string) {
   return db.query.events.findFirst({
     where: eq(events.slug, slug),
     with: {
-      registrations: { with: { user: true } },
-      createdBy: true,
+      registrations: {
+        with: { user: { columns: publicUserColumns } },
+      },
+      createdBy: { columns: publicUserColumns },
     },
   });
 }
@@ -43,20 +61,29 @@ export async function getActiveListings(opts?: {
     where: and(...conditions),
     orderBy: [desc(listings.createdAt)],
     limit: opts?.limit,
-    with: { seller: true },
+    with: { seller: { columns: publicUserColumns } },
   });
 }
 
 export async function getListingById(id: string) {
   return db.query.listings.findFirst({
     where: eq(listings.id, id),
-    with: { seller: true },
+    with: { seller: { columns: publicUserColumns } },
   });
 }
 
 export async function getApprovedMembers() {
   const rows = await db.query.users.findMany({
     where: eq(users.approved, true),
+    columns: {
+      id: true,
+      name: true,
+      bikeModel: true,
+      city: true,
+      role: true,
+      verified: true,
+      joinedAt: true,
+    },
     with: { medals: { with: { medal: true } } },
     orderBy: [desc(users.joinedAt)],
   });
@@ -64,9 +91,30 @@ export async function getApprovedMembers() {
 }
 
 export async function getMemberById(userId: string) {
+  // Used by both the account page (the member viewing themselves — needs
+  // email/phone/bio) and the public member-profile page, so this is the
+  // widest column set either of those actually renders. Still never
+  // touches passwordHash or the reset/verify tokens.
   return db.query.users.findFirst({
     where: eq(users.id, userId),
-    with: { medals: { with: { medal: true } }, listings: true },
+    columns: {
+      id: true,
+      name: true,
+      email: true,
+      phone: true,
+      bikeModel: true,
+      bio: true,
+      avatarUrl: true,
+      city: true,
+      role: true,
+      approved: true,
+      verified: true,
+      joinedAt: true,
+    },
+    with: {
+      medals: { with: { medal: true } },
+      listings: true,
+    },
   });
 }
 
@@ -75,15 +123,25 @@ export async function getAllMedals() {
 }
 
 export async function getStats() {
-  const [memberRows, eventRows, listingRows] = await Promise.all([
-    db.query.users.findMany({ where: eq(users.approved, true) }),
-    db.query.events.findMany({ where: eq(events.status, "PUBLISHED") }),
-    db.query.listings.findMany({ where: eq(listings.status, "ACTIVE") }),
+  // These only ever feed a "X members / Y events / Z listings" homepage
+  // counter, so ask the DB for counts directly instead of loading every
+  // row (including passwordHash and every other column) just to read
+  // `.length`.
+  const [[memberRow], [eventRow], [listingRow]] = await Promise.all([
+    db.select({ value: count() }).from(users).where(eq(users.approved, true)),
+    db
+      .select({ value: count() })
+      .from(events)
+      .where(eq(events.status, "PUBLISHED")),
+    db
+      .select({ value: count() })
+      .from(listings)
+      .where(eq(listings.status, "ACTIVE")),
   ]);
   return {
-    members: memberRows.length,
-    events: eventRows.length,
-    listings: listingRows.length,
+    members: memberRow.value,
+    events: eventRow.value,
+    listings: listingRow.value,
   };
 }
 

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/require-admin";
 import { db, users } from "@/db";
-import { eq } from "drizzle-orm";
+import { and, count, eq, ne } from "drizzle-orm";
 import { z } from "zod";
 import { sendVerifiedBadgeEmail } from "@/lib/email";
 
@@ -15,7 +15,7 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const { error } = await requireAdmin();
+  const { session, error } = await requireAdmin();
   if (error) return error;
 
   const body = await req.json().catch(() => null);
@@ -41,6 +41,31 @@ export async function PATCH(
     );
   }
 
+  // Demoting an admin to MEMBER is the one change that can lock everyone
+  // out of the admin panel, so it gets two guards: you can never demote
+  // yourself (even if other admins exist — do it from another admin's
+  // account), and the last remaining admin can never be demoted at all.
+  const isDemotingAdmin =
+    before.role === "ADMIN" && parsed.data.role === "MEMBER";
+  if (isDemotingAdmin) {
+    if (before.id === session!.user.id) {
+      return NextResponse.json(
+        { error: "You can't remove your own admin access." },
+        { status: 400 }
+      );
+    }
+    const [{ value: otherAdmins }] = await db
+      .select({ value: count() })
+      .from(users)
+      .where(and(eq(users.role, "ADMIN"), ne(users.id, before.id)));
+    if (otherAdmins === 0) {
+      return NextResponse.json(
+        { error: "Can't demote the last remaining admin." },
+        { status: 400 }
+      );
+    }
+  }
+
   const result = await db
     .update(users)
     .set(parsed.data)
@@ -53,11 +78,6 @@ export async function PATCH(
   // reporting success.
   const rowsAffected = (result as unknown as { rowsAffected?: number })
     .rowsAffected;
-  console.log("PATCH /api/admin/members/[id]", {
-    id: params.id,
-    data: parsed.data,
-    rowsAffected,
-  });
   if (rowsAffected === 0) {
     return NextResponse.json(
       {

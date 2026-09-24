@@ -36,7 +36,9 @@ export async function getAllEventsAdmin() {
 export async function getAllListingsAdmin() {
   return db.query.listings.findMany({
     orderBy: [desc(listings.createdAt)],
-    with: { seller: true },
+    // Admin marketplace list only ever shows the seller's name — never
+    // load passwordHash/tokens just to join it in.
+    with: { seller: { columns: { id: true, name: true } } },
   });
 }
 

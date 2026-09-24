@@ -94,11 +94,11 @@ export default function RegisterPage() {
             className="field"
           />
         </Field>
-        <Field label="Password">
+        <Field label="Password (min. 8 characters)">
           <input
             type="password"
             required
-            minLength={6}
+            minLength={8}
             value={form.password}
             onChange={(e) => update("password", e.target.value)}
             className="field"

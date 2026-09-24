@@ -3,10 +3,11 @@ import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { db, users } from "@/db";
 import { eq } from "drizzle-orm";
+import { hashToken } from "@/lib/utils";
 
 const schema = z.object({
   token: z.string().min(1),
-  password: z.string().min(6).max(100),
+  password: z.string().min(8).max(100),
 });
 
 export async function POST(req: NextRequest) {
@@ -21,7 +22,7 @@ export async function POST(req: NextRequest) {
 
   const { token, password } = parsed.data;
   const user = await db.query.users.findFirst({
-    where: eq(users.resetToken, token),
+    where: eq(users.resetToken, hashToken(token)),
   });
 
   if (!user) {

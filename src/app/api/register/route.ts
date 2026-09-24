@@ -3,13 +3,13 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { db, users } from "@/db";
 import { eq } from "drizzle-orm";
-import { id } from "@/lib/utils";
+import { id, hashToken } from "@/lib/utils";
 import { sendVerificationEmail } from "@/lib/email";
 
 const schema = z.object({
   name: z.string().min(2).max(80),
   email: z.string().email(),
-  password: z.string().min(6).max(100),
+  password: z.string().min(8).max(100),
   phone: z.string().min(6).max(20).optional().or(z.literal("")),
   bikeModel: z.string().max(60).optional().or(z.literal("")),
   city: z.string().max(60).optional().or(z.literal("")),
@@ -56,7 +56,9 @@ export async function POST(req: NextRequest) {
     approved: false,
     verified: false,
     emailVerified: false,
-    emailVerifyToken: verifyToken,
+    // Only the hash is stored — the raw token only ever exists in the
+    // email we send below. See hashToken() for why.
+    emailVerifyToken: hashToken(verifyToken),
     emailVerifyExpires: verifyExpires,
   });
 

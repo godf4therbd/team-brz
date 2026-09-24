@@ -66,12 +66,12 @@ function ResetForm() {
           <>
             <div>
               <label className="mb-1 block text-xs uppercase tracking-wide text-brz-mute">
-                New password
+                New password (min. 8 characters)
               </label>
               <input
                 type="password"
                 required
-                minLength={6}
+                minLength={8}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full rounded-md border border-brz-line bg-brz-black px-3 py-2 text-brz-white outline-none focus:border-brz-red"
