@@ -29,30 +29,35 @@ export default async function Home() {
             priority
             className="object-cover object-[50%_38%]"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-brz-black/75 via-brz-black/35 to-brz-black/10" />
-          <div className="absolute inset-0 bg-gradient-to-t from-brz-black/70 via-transparent to-transparent" />
+          {/* This scrim + the text sitting on it are deliberately fixed
+              black/white, not brz-black/brz-white — they're darkening a
+              photo for contrast, not painting a themeable surface, so they
+              must stay put no matter which theme is active (a light-mode
+              scrim here would wash out instead of darkening the photo). */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/35 to-black/10" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
 
-          <div className="absolute inset-0 mx-auto flex max-w-6xl flex-col justify-center px-4 md:px-6">
+          <div className="absolute inset-0 mx-auto flex max-w-7xl 2xl:max-w-[1500px] flex-col justify-center px-4 md:px-6">
             <span className="badge w-fit border border-brz-red/50 bg-brz-red/10 text-brz-red">
               🏁 Riders since day one
             </span>
-            <h1 className="mt-6 max-w-3xl font-display text-5xl font-bold uppercase leading-[0.95] tracking-tight text-brz-white [text-shadow:0_2px_24px_rgba(0,0,0,0.85)] md:text-7xl">
+            <h1 className="mt-6 max-w-3xl font-display text-5xl font-bold uppercase leading-[0.95] tracking-tight text-white [text-shadow:0_2px_24px_rgba(0,0,0,0.85)] md:text-7xl">
               We ride <span className="text-brz-red">together</span>
             </h1>
-            <p className="mt-6 max-w-xl text-lg text-brz-white [text-shadow:0_2px_12px_rgba(0,0,0,0.9)]">
+            <p className="mt-6 max-w-xl text-lg text-white [text-shadow:0_2px_12px_rgba(0,0,0,0.9)]">
               A riding family, not just a club. Join tours across the country,
               earn your medals, and trade gear with people who actually ride.
             </p>
             <div className="mt-8 flex flex-wrap gap-4">
               <Link
                 href="/events"
-                className="rounded-md bg-brz-red px-8 py-3.5 font-display text-sm font-bold uppercase tracking-wider text-brz-black transition hover:bg-brz-amber"
+                className="rounded-md bg-brz-red px-8 py-3.5 font-display text-sm font-bold uppercase tracking-wider text-brz-ink transition hover:bg-brz-amber"
               >
                 Explore our rides
               </Link>
               <Link
                 href="/register"
-                className="rounded-md border border-brz-line px-8 py-3.5 font-display text-sm font-bold uppercase tracking-wider text-brz-white transition hover:border-brz-red hover:text-brz-red"
+                className="rounded-md border border-white/40 px-8 py-3.5 font-display text-sm font-bold uppercase tracking-wider text-white transition hover:border-brz-red hover:text-brz-red"
               >
                 Join the club
               </Link>
@@ -63,7 +68,7 @@ export default async function Home() {
       </section>
 
       {/* Welcome / stats */}
-      <section className="mx-auto max-w-6xl px-4 py-16 md:px-6 md:py-24">
+      <section className="mx-auto max-w-7xl 2xl:max-w-[1500px] px-4 py-16 md:px-6 md:py-24">
         <div className="grid gap-12 md:grid-cols-2 md:gap-16">
           <div className="relative aspect-[4/3] overflow-hidden rounded-xl border border-brz-line">
             <Image
@@ -103,8 +108,8 @@ export default async function Home() {
       </section>
 
       {/* Missions */}
-      <section className="border-y border-brz-line bg-brz-charcoal/40">
-        <div className="mx-auto max-w-6xl px-4 py-16 md:px-6">
+      <section className="border-y border-brz-line bg-brz-charcoal/70">
+        <div className="mx-auto max-w-7xl 2xl:max-w-[1500px] px-4 py-16 md:px-6">
           <h2 className="text-center font-display text-3xl font-bold uppercase tracking-wide text-brz-white">
             What we do
           </h2>
@@ -133,7 +138,7 @@ export default async function Home() {
       </section>
 
       {/* Ride gallery */}
-      <section className="mx-auto max-w-6xl px-4 py-16 md:px-6">
+      <section className="mx-auto max-w-7xl 2xl:max-w-[1500px] px-4 py-16 md:px-6">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <h2 className="font-display text-3xl font-bold uppercase tracking-wide text-brz-white">
@@ -163,8 +168,8 @@ export default async function Home() {
 
       {/* Meet the crew */}
       {crew.length > 0 && (
-        <section className="border-y border-brz-line bg-brz-charcoal/40">
-          <div className="mx-auto max-w-6xl px-4 py-16 md:px-6">
+        <section className="border-y border-brz-line bg-brz-charcoal/70">
+          <div className="mx-auto max-w-7xl 2xl:max-w-[1500px] px-4 py-16 md:px-6">
             <h2 className="font-display text-3xl font-bold uppercase tracking-wide text-brz-white">
               Meet the crew
             </h2>
@@ -211,7 +216,7 @@ export default async function Home() {
       )}
 
       {/* Upcoming events */}
-      <section className="mx-auto max-w-6xl px-4 py-16 md:px-6">
+      <section className="mx-auto max-w-7xl 2xl:max-w-[1500px] px-4 py-16 md:px-6">
         <div className="flex items-center justify-between">
           <h2 className="font-display text-3xl font-bold uppercase tracking-wide text-brz-white">
             Upcoming rides
@@ -242,8 +247,8 @@ export default async function Home() {
         (with their permission) whenever you have some. First names only,
         not tied to any real member record.
       */}
-      <section className="border-y border-brz-line bg-brz-charcoal/40">
-        <div className="mx-auto max-w-6xl px-4 py-16 md:px-6">
+      <section className="border-y border-brz-line bg-brz-charcoal/70">
+        <div className="mx-auto max-w-7xl 2xl:max-w-[1500px] px-4 py-16 md:px-6">
           <h2 className="text-center font-display text-3xl font-bold uppercase tracking-wide text-brz-white">
             What our members say
           </h2>
@@ -268,7 +273,7 @@ export default async function Home() {
       </section>
 
       {/* CTA */}
-      <section className="mx-auto max-w-6xl px-4 py-16 md:px-6">
+      <section className="mx-auto max-w-7xl 2xl:max-w-[1500px] px-4 py-16 md:px-6">
         <div className="card relative overflow-hidden p-10 text-center">
           <div className="absolute inset-x-0 top-0 h-1.5 checker-flag-red" />
           <h2 className="font-display text-3xl font-bold uppercase tracking-wide text-brz-white">
@@ -280,7 +285,7 @@ export default async function Home() {
           </p>
           <Link
             href="/register"
-            className="mt-6 inline-block rounded-md bg-brz-red px-8 py-3 font-display text-sm font-bold uppercase tracking-wider text-brz-black transition hover:bg-brz-amber"
+            className="mt-6 inline-block rounded-md bg-brz-red px-8 py-3 font-display text-sm font-bold uppercase tracking-wider text-brz-ink transition hover:bg-brz-amber"
           >
             Get started
           </Link>

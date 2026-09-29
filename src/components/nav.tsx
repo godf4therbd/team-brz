@@ -5,12 +5,20 @@ import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { useState } from "react";
 import Logo from "./logo";
+import WeatherWidget from "./weather-widget";
+import ThemeToggle from "./theme-toggle";
 import { cn } from "@/lib/utils";
+
+function isStaffRole(role?: string) {
+  return role === "ADMIN" || role === "CO_ADMIN" || role === "MODERATOR";
+}
 
 const links = [
   { href: "/events", label: "Events" },
   { href: "/marketplace", label: "Marketplace" },
   { href: "/members", label: "Members" },
+  { href: "/blog", label: "Blog" },
+  { href: "/news", label: "News" },
 ];
 
 export default function Nav() {
@@ -20,7 +28,7 @@ export default function Nav() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-brz-line bg-brz-black/95 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 md:px-6">
+      <div className="mx-auto flex max-w-7xl 2xl:max-w-[1500px] items-center justify-between px-4 py-3 md:px-6">
         <Link
           href="/"
           onClick={() => setOpen(false)}
@@ -45,7 +53,7 @@ export default function Nav() {
               {l.label}
             </Link>
           ))}
-          {session?.user.role === "ADMIN" && (
+          {isStaffRole(session?.user.role) && (
             <Link
               href="/admin"
               className={cn(
@@ -58,14 +66,16 @@ export default function Nav() {
           )}
         </nav>
 
-        <div className="hidden items-center gap-3 md:flex">
+        <div className="hidden items-center gap-4 md:flex">
+          <WeatherWidget />
+          <ThemeToggle />
           {status === "loading" ? null : session ? (
             <>
               <Link
                 href="/account"
                 className="text-sm font-medium text-brz-mute hover:text-brz-white"
               >
-                {session.user.name?.split(" ")[0]}
+                Hello, {session.user.name?.split(" ")[0]}
               </Link>
               <button
                 onClick={() => signOut({ callbackUrl: "/" })}
@@ -84,7 +94,7 @@ export default function Nav() {
               </Link>
               <Link
                 href="/register"
-                className="rounded-md bg-brz-red px-3 py-1.5 text-sm font-bold uppercase tracking-wide text-brz-black transition hover:bg-brz-amber"
+                className="rounded-md bg-brz-red px-3 py-1.5 text-sm font-bold uppercase tracking-wide text-brz-ink transition hover:bg-brz-amber"
               >
                 Join the club
               </Link>
@@ -114,7 +124,7 @@ export default function Nav() {
                 {l.label}
               </Link>
             ))}
-            {session?.user.role === "ADMIN" && (
+            {isStaffRole(session?.user.role) && (
               <Link
                 href="/admin"
                 onClick={() => setOpen(false)}
@@ -123,6 +133,9 @@ export default function Nav() {
                 Admin
               </Link>
             )}
+            <div className="mt-2 flex items-center justify-between gap-3 border-t border-brz-line pt-3">
+              <ThemeToggle />
+            </div>
             <div className="mt-2 flex gap-3 border-t border-brz-line pt-3">
               {session ? (
                 <>
@@ -131,7 +144,7 @@ export default function Nav() {
                     onClick={() => setOpen(false)}
                     className="text-sm text-brz-mute hover:text-brz-white"
                   >
-                    My account
+                    Hello, {session.user.name?.split(" ")[0]}
                   </Link>
                   <button
                     onClick={() => signOut({ callbackUrl: "/" })}

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/require-admin";
+import { requireAdmin, requireStaff } from "@/lib/require-admin";
 import { db, events } from "@/db";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
@@ -21,13 +21,26 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const { error } = await requireAdmin();
+  // Moderators can only cancel an event (status: "CANCELLED" and nothing
+  // else in the same request) — editing any other field needs Admin/Co-Admin.
+  const { session, error } = await requireStaff();
   if (error) return error;
 
   const body = await req.json().catch(() => null);
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid input." }, { status: 400 });
+  }
+
+  if (session!.user.role === "MODERATOR") {
+    const keys = Object.keys(parsed.data);
+    const isCancelOnly = keys.length === 1 && parsed.data.status === "CANCELLED";
+    if (!isCancelOnly) {
+      return NextResponse.json(
+        { error: "Moderators can only cancel an event." },
+        { status: 403 }
+      );
+    }
   }
 
   const update: Record<string, unknown> = { ...parsed.data };

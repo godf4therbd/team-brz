@@ -4,7 +4,7 @@ declare module "next-auth" {
   interface Session {
     user: {
       id: string;
-      role: "ADMIN" | "MEMBER";
+      role: "ADMIN" | "CO_ADMIN" | "MODERATOR" | "MEMBER";
       approved: boolean;
       verified: boolean;
       avatarUrl?: string;
@@ -13,7 +13,7 @@ declare module "next-auth" {
 
   interface User {
     id: string;
-    role: "ADMIN" | "MEMBER";
+    role: "ADMIN" | "CO_ADMIN" | "MODERATOR" | "MEMBER";
     approved: boolean;
     verified: boolean;
     avatarUrl?: string;
@@ -23,7 +23,7 @@ declare module "next-auth" {
 declare module "next-auth/jwt" {
   interface JWT {
     id: string;
-    role: "ADMIN" | "MEMBER";
+    role: "ADMIN" | "CO_ADMIN" | "MODERATOR" | "MEMBER";
     approved: boolean;
     verified: boolean;
     avatarUrl?: string;

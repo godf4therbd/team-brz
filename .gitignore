@@ -36,6 +36,10 @@ yarn-error.log*
 /data/*.db-shm
 !/data/build-schema.db
 
+# local-dev-only fallback for profile/bike photo uploads when
+# BLOB_READ_WRITE_TOKEN isn't set — see src/app/api/account/photo/route.ts
+/public/uploads/
+
 # vercel
 .vercel
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { isAdminRole } from "@/lib/require-admin";
 import { db, listings } from "@/db";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
@@ -25,8 +26,9 @@ export async function PATCH(
     return NextResponse.json({ error: "Listing not found." }, { status: 404 });
   }
   const isOwner = listing.sellerId === session.user.id;
-  const isAdmin = session.user.role === "ADMIN";
-  if (!isOwner && !isAdmin) {
+  const isAdmin = isAdminRole(session.user.role);
+  const isModerator = session.user.role === "MODERATOR";
+  if (!isOwner && !isAdmin && !isModerator) {
     return NextResponse.json({ error: "Not allowed." }, { status: 403 });
   }
 
@@ -34,6 +36,15 @@ export async function PATCH(
   const parsed = patchSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid status." }, { status: 400 });
+  }
+
+  // Moderators can only pull a listing down, not reactivate it or mark it
+  // sold on someone else's behalf — those stay owner/admin actions.
+  if (isModerator && !isOwner && parsed.data.status !== "REMOVED") {
+    return NextResponse.json(
+      { error: "Moderators can only remove a listing." },
+      { status: 403 }
+    );
   }
 
   await db

@@ -2,13 +2,53 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
+/* ---------- Theme ----------
+   Dark is the default/original palette (no data-theme attribute, or
+   data-theme="dark"). Light is an override applied by the theme toggle
+   (see components/theme-provider.tsx), which sets data-theme="light" on
+   <html> — before hydration, via an inline script in layout.tsx, so there
+   is no flash of the wrong theme on load. */
+:root,
+:root[data-theme="dark"] {
   --background: #0a0a0c;
   --foreground: #f5f5f2;
+
+  --brz-black: #0a0a0c;
+  --brz-charcoal: #161618;
+  --brz-steel: #232328;
+  --brz-line: #2c2c31;
+  --brz-red: #f5251f;
+  --brz-red-dim: #a30f0f;
+  --brz-amber: #ffb703;
+  --brz-white: #f5f5f2;
+  --brz-mute: #9a9aa2;
+  /* Fixed near-black, deliberately the SAME in both themes — this is the
+     "ink" used for dark text sitting on the always-bright brz-red/amber
+     buttons, not a page surface. Unlike --brz-black (a surface color that
+     inverts to near-white in light mode), text using this needs to stay
+     dark in both themes or it disappears against the button. */
+  --brz-ink: #0a0a0c;
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  --background: #f7f7f5;
+  --foreground: #17171a;
+
+  --brz-black: #f7f7f5;
+  --brz-charcoal: #ffffff;
+  --brz-steel: #e8e8e4;
+  --brz-line: #d8d8d3;
+  --brz-red: #cf1e1a;
+  --brz-red-dim: #8f1310;
+  --brz-amber: #b8790a;
+  --brz-white: #17171a;
+  --brz-mute: #5a5a62;
+  color-scheme: light;
 }
 
 * {
-  border-color: #2c2c31;
+  border-color: var(--brz-line);
 }
 
 body {
@@ -19,9 +59,9 @@ body {
 /* Checkered flag motif, used as a thin accent strip under headers/heroes */
 .checker-flag {
   background-image: conic-gradient(
-    #f5f5f2 90deg,
+    var(--brz-white) 90deg,
     transparent 90deg 180deg,
-    #f5f5f2 180deg 270deg,
+    var(--brz-white) 180deg 270deg,
     transparent 270deg
   );
   background-size: 16px 16px;
@@ -29,9 +69,9 @@ body {
 
 .checker-flag-red {
   background-image: conic-gradient(
-    #f5251f 90deg,
+    var(--brz-red) 90deg,
     transparent 90deg 180deg,
-    #f5251f 180deg 270deg,
+    var(--brz-red) 180deg 270deg,
     transparent 270deg
   );
   background-size: 16px 16px;
@@ -46,9 +86,9 @@ body {
   background: linear-gradient(
     to right,
     transparent 0%,
-    #a30f0f 18%,
-    #f5251f 50%,
-    #a30f0f 82%,
+    var(--brz-red-dim) 18%,
+    var(--brz-red) 50%,
+    var(--brz-red-dim) 82%,
     transparent 100%
   );
 }
@@ -77,26 +117,26 @@ body {
 }
 
 .text-outline {
-  -webkit-text-stroke: 1px #f5251f;
+  -webkit-text-stroke: 1px var(--brz-red);
 }
 
 .card {
-  background: #161618;
-  border: 1px solid #2c2c31;
+  background: var(--brz-charcoal);
+  border: 1px solid var(--brz-line);
   border-radius: 0.75rem;
 }
 
 .field {
   width: 100%;
   border-radius: 0.5rem;
-  border: 1px solid #2c2c31;
-  background: #0a0a0c;
-  color: #f5f5f2;
+  border: 1px solid var(--brz-line);
+  background: var(--brz-black);
+  color: var(--brz-white);
   padding: 0.5rem 0.75rem;
   outline: none;
 }
 .field:focus {
-  border-color: #f5251f;
+  border-color: var(--brz-red);
 }
 textarea.field {
   min-height: 6rem;
@@ -115,8 +155,8 @@ textarea.field {
 }
 
 ::selection {
-  background: #f5251f;
-  color: #0a0a0c;
+  background: var(--brz-red);
+  color: var(--brz-black);
 }
 
 ::-webkit-scrollbar {
@@ -124,14 +164,14 @@ textarea.field {
   height: 10px;
 }
 ::-webkit-scrollbar-track {
-  background: #0a0a0c;
+  background: var(--brz-black);
 }
 ::-webkit-scrollbar-thumb {
-  background: #2c2c31;
+  background: var(--brz-line);
   border-radius: 8px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #f5251f;
+  background: var(--brz-red);
 }
 
 /* Loading spinner — Uiverse.io by Nawsome, recolored to the Team Brz palette */
@@ -145,22 +185,22 @@ textarea.field {
 }
 
 .pl__ring--a {
-  stroke: #f5251f;
+  stroke: var(--brz-red);
 }
 
 .pl__ring--b {
   animation-name: ringB;
-  stroke: #ffb703;
+  stroke: var(--brz-amber);
 }
 
 .pl__ring--c {
   animation-name: ringC;
-  stroke: #f5f5f2;
+  stroke: var(--brz-white);
 }
 
 .pl__ring--d {
   animation-name: ringD;
-  stroke: #9a9aa2;
+  stroke: var(--brz-mute);
 }
 
 @keyframes ringA {
@@ -336,7 +376,7 @@ textarea.field {
 
 .brz-cloud {
   position: absolute;
-  background: #f5f5f2;
+  background: var(--brz-white);
   border-radius: 50%;
   opacity: 0.15;
   animation: brzCloudMove linear infinite;
@@ -346,7 +386,7 @@ textarea.field {
 .brz-cloud::after {
   content: "";
   position: absolute;
-  background: #f5f5f2;
+  background: var(--brz-white);
   border-radius: 50%;
 }
 
@@ -421,7 +461,7 @@ textarea.field {
 .brz-speeder > span {
   height: 5px;
   width: 35px;
-  background: #f5251f;
+  background: var(--brz-red);
   position: absolute;
   top: -19px;
   left: 60px;
@@ -433,7 +473,7 @@ textarea.field {
   width: 0;
   height: 0;
   border-top: 6px solid transparent;
-  border-right: 100px solid #f5f5f2;
+  border-right: 100px solid var(--brz-white);
   border-bottom: 6px solid transparent;
 }
 
@@ -442,7 +482,7 @@ textarea.field {
   height: 22px;
   width: 22px;
   border-radius: 50%;
-  background: #f5f5f2;
+  background: var(--brz-white);
   position: absolute;
   right: -110px;
   top: -16px;
@@ -454,7 +494,7 @@ textarea.field {
   width: 0;
   height: 0;
   border-top: 0 solid transparent;
-  border-right: 55px solid #f5f5f2;
+  border-right: 55px solid var(--brz-white);
   border-bottom: 16px solid transparent;
   top: -16px;
   right: -98px;
@@ -464,7 +504,7 @@ textarea.field {
   position: absolute;
   height: 12px;
   width: 20px;
-  background: #f5f5f2;
+  background: var(--brz-white);
   border-radius: 20px 20px 0 0;
   transform: rotate(-40deg);
   right: -125px;
@@ -475,7 +515,7 @@ textarea.field {
   content: "";
   height: 12px;
   width: 12px;
-  background: #f5251f;
+  background: var(--brz-red);
   right: 4px;
   top: 7px;
   position: absolute;
@@ -487,7 +527,7 @@ textarea.field {
 .brz-speeder > span > span {
   width: 30px;
   height: 1px;
-  background: #f5f5f2;
+  background: var(--brz-white);
   position: absolute;
 }
 
@@ -592,7 +632,7 @@ textarea.field {
   position: absolute;
   height: 2px;
   width: 20%;
-  background: #f5f5f2;
+  background: var(--brz-white);
   opacity: 0.5;
 }
 
@@ -651,4 +691,342 @@ textarea.field {
     left: -100%;
     opacity: 0;
   }
+}
+
+/* ---------- Day/night theme switch ----------
+   Adapted from a Uiverse.io component (by Galahhad) for the light/dark
+   toggle in the nav bar — sized down to fit inline with the nav links via
+   --toggle-size, everything else kept close to the original design. See
+   components/theme-toggle.tsx for the markup + the click handler that
+   flips ThemeProvider's theme. */
+.theme-switch {
+  --toggle-size: 15px;
+  --container-width: 5.625em;
+  --container-height: 2.5em;
+  --container-radius: 6.25em;
+  --container-light-bg: #3d7eae;
+  --container-night-bg: var(--brz-charcoal);
+  --circle-container-diameter: 3.375em;
+  --sun-moon-diameter: 2.125em;
+  --sun-bg: #ecca2f;
+  --moon-bg: #c4c9d1;
+  --spot-color: #959db1;
+  --circle-container-offset: calc(
+    (var(--circle-container-diameter) - var(--container-height)) / 2 * -1
+  );
+  --stars-color: #fff;
+  --clouds-color: #f3fdff;
+  --back-clouds-color: #aacadf;
+  --transition: 0.5s cubic-bezier(0, -0.02, 0.4, 1.25);
+  --circle-transition: 0.3s cubic-bezier(0, -0.02, 0.35, 1.17);
+  display: inline-flex;
+  cursor: pointer;
+}
+
+.theme-switch,
+.theme-switch *,
+.theme-switch *::before,
+.theme-switch *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-size: var(--toggle-size);
+}
+
+.theme-switch__container {
+  width: var(--container-width);
+  height: var(--container-height);
+  background-color: var(--container-light-bg);
+  border-radius: var(--container-radius);
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow:
+    0em -0.062em 0.062em rgba(0, 0, 0, 0.25),
+    0em 0.062em 0.125em rgba(255, 255, 255, 0.94);
+  transition: var(--transition);
+  position: relative;
+}
+
+.theme-switch__container::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  box-shadow:
+    0em 0.05em 0.187em rgba(0, 0, 0, 0.25) inset,
+    0em 0.05em 0.187em rgba(0, 0, 0, 0.25) inset;
+  border-radius: var(--container-radius);
+}
+
+.theme-switch__checkbox {
+  display: none;
+}
+
+.theme-switch__circle-container {
+  width: var(--circle-container-diameter);
+  height: var(--circle-container-diameter);
+  background-color: rgba(255, 255, 255, 0.1);
+  position: absolute;
+  left: var(--circle-container-offset);
+  top: var(--circle-container-offset);
+  border-radius: var(--container-radius);
+  box-shadow:
+    inset 0 0 0 3.375em rgba(255, 255, 255, 0.1),
+    inset 0 0 0 3.375em rgba(255, 255, 255, 0.1),
+    0 0 0 0.625em rgba(255, 255, 255, 0.1),
+    0 0 0 1.25em rgba(255, 255, 255, 0.1);
+  display: flex;
+  transition: var(--circle-transition);
+  pointer-events: none;
+}
+
+.theme-switch__sun-moon-container {
+  pointer-events: auto;
+  position: relative;
+  z-index: 2;
+  width: var(--sun-moon-diameter);
+  height: var(--sun-moon-diameter);
+  margin: auto;
+  border-radius: var(--container-radius);
+  background-color: var(--sun-bg);
+  box-shadow:
+    0.062em 0.062em 0.062em 0em rgba(254, 255, 239, 0.61) inset,
+    0em -0.062em 0.062em 0em #a1872a inset;
+  filter: drop-shadow(0.062em 0.125em 0.125em rgba(0, 0, 0, 0.25))
+    drop-shadow(0em 0.062em 0.125em rgba(0, 0, 0, 0.25));
+  overflow: hidden;
+  transition: var(--transition);
+}
+
+.theme-switch__moon {
+  transform: translateX(100%);
+  width: 100%;
+  height: 100%;
+  background-color: var(--moon-bg);
+  border-radius: inherit;
+  box-shadow:
+    0.062em 0.062em 0.062em 0em rgba(254, 255, 239, 0.61) inset,
+    0em -0.062em 0.062em 0em #969696 inset;
+  transition: var(--transition);
+  position: relative;
+}
+
+.theme-switch__spot {
+  position: absolute;
+  top: 0.75em;
+  left: 0.312em;
+  width: 0.75em;
+  height: 0.75em;
+  border-radius: var(--container-radius);
+  background-color: var(--spot-color);
+  box-shadow: 0em 0.0312em 0.062em rgba(0, 0, 0, 0.25) inset;
+}
+
+.theme-switch__spot:nth-of-type(2) {
+  width: 0.375em;
+  height: 0.375em;
+  top: 0.937em;
+  left: 1.375em;
+}
+
+.theme-switch__spot:nth-last-of-type(3) {
+  width: 0.25em;
+  height: 0.25em;
+  top: 0.312em;
+  left: 0.812em;
+}
+
+.theme-switch__clouds {
+  width: 1.25em;
+  height: 1.25em;
+  background-color: var(--clouds-color);
+  border-radius: var(--container-radius);
+  position: absolute;
+  bottom: -0.625em;
+  left: 0.312em;
+  box-shadow:
+    0.937em 0.312em var(--clouds-color),
+    -0.312em -0.312em var(--back-clouds-color),
+    1.437em 0.375em var(--clouds-color),
+    0.5em -0.125em var(--back-clouds-color),
+    2.187em 0 var(--clouds-color),
+    1.25em -0.062em var(--back-clouds-color),
+    2.937em 0.312em var(--clouds-color),
+    2em -0.312em var(--back-clouds-color),
+    3.625em -0.062em var(--clouds-color),
+    2.625em 0em var(--back-clouds-color),
+    4.5em -0.312em var(--clouds-color),
+    3.375em -0.437em var(--back-clouds-color),
+    4.625em -1.75em 0 0.437em var(--clouds-color),
+    4em -0.625em var(--back-clouds-color),
+    4.125em -2.125em 0 0.437em var(--back-clouds-color);
+  transition: 0.5s cubic-bezier(0, -0.02, 0.4, 1.25);
+}
+
+.theme-switch__stars-container {
+  position: absolute;
+  color: var(--stars-color);
+  top: -100%;
+  left: 0.312em;
+  width: 2.75em;
+  height: auto;
+  transition: var(--transition);
+}
+
+/* actions */
+
+.theme-switch__checkbox:checked + .theme-switch__container {
+  background-color: var(--container-night-bg);
+}
+
+.theme-switch__checkbox:checked
+  + .theme-switch__container
+  .theme-switch__circle-container {
+  left: calc(
+    100% - var(--circle-container-offset) - var(--circle-container-diameter)
+  );
+}
+
+.theme-switch__checkbox:checked
+  + .theme-switch__container
+  .theme-switch__circle-container:hover {
+  left: calc(
+    100% - var(--circle-container-offset) - var(--circle-container-diameter) -
+      0.187em
+  );
+}
+
+.theme-switch__circle-container:hover {
+  left: calc(var(--circle-container-offset) + 0.187em);
+}
+
+.theme-switch__checkbox:checked + .theme-switch__container .theme-switch__moon {
+  transform: translate(0);
+}
+
+.theme-switch__checkbox:checked
+  + .theme-switch__container
+  .theme-switch__clouds {
+  bottom: -4.062em;
+}
+
+.theme-switch__checkbox:checked
+  + .theme-switch__container
+  .theme-switch__stars-container {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* ---------- Weather card ----------
+   Adapted from a Uiverse.io component (by vinodjangid07) for the expanded
+   weather popover in the nav (see components/weather-widget.tsx — click
+   the compact temperature pill to open it). Kept as a frosted dark glass
+   card regardless of site theme, same reasoning as the homepage hero
+   scrim: it's floating "glass" over whatever's behind it, not a page
+   surface that should repaint with the toggle. The accent glow uses the
+   club's red instead of the original blue for consistency with the rest
+   of the site's palette. */
+.weather-card-container {
+  width: fit-content;
+  /* No position here on purpose — the popover wrapper in
+     weather-widget.tsx already sets `absolute` via a Tailwind class, and
+     that's what needs to win. This class only needs to establish a
+     containing block for the ::before glow below, and `position:
+     absolute` from that Tailwind class already does that job. */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.weather-card {
+  position: relative;
+  width: 220px;
+  height: 250px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 10px;
+  border-radius: 10px;
+  backdrop-filter: blur(30px);
+  background-color: rgba(20, 20, 22, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.089);
+}
+
+.weather-card-city {
+  font-weight: 700;
+  font-size: 0.9em;
+  letter-spacing: 1.2px;
+  color: white;
+}
+
+.weather-card-condition {
+  font-weight: 500;
+  font-size: 0.7em;
+  letter-spacing: 1.2px;
+  color: rgb(197, 197, 197);
+}
+
+.weather-card-icon {
+  font-size: 2.6em;
+  line-height: 1;
+}
+
+.weather-card-temp {
+  font-size: 1.8em;
+  color: white;
+}
+
+.weather-card-minmax {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.weather-card-min,
+.weather-card-max {
+  width: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0px 20px;
+  gap: 4px;
+}
+
+.weather-card-max {
+  align-items: flex-start;
+  border-left: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.weather-card-minmax-heading {
+  font-size: 0.7em;
+  font-weight: 600;
+  color: white;
+}
+
+.weather-card-minmax-temp {
+  font-size: 0.6em;
+  font-weight: 500;
+  color: rgb(197, 197, 197);
+}
+
+.weather-card-container::before {
+  width: 100px;
+  height: 100px;
+  content: "";
+  position: absolute;
+  background-color: var(--brz-red);
+  opacity: 0.55;
+  filter: blur(6px);
+  z-index: -1;
+  border-radius: 50%;
+  left: 100px;
+  top: 50px;
+  transition: all 1s;
+}
+
+.weather-card-container:hover::before {
+  transform: translate(-50px, 50px);
 }

@@ -79,9 +79,32 @@ NEXTAUTH_URL="http://localhost:3000"   # your real domain in production
 # console instead and nothing else breaks.
 RESEND_API_KEY=
 EMAIL_FROM="Team Brz <onboarding@resend.dev>"
+
+# Profile picture / bike picture / blog cover image uploads (Vercel Blob).
+# Leave unset for local dev — uploads fall back to writing into
+# public/uploads/ on your own machine. In production (Vercel), this MUST
+# be set or uploads will fail — see "Photo uploads" below.
+BLOB_READ_WRITE_TOKEN=
 ```
 
 Generate a secret with `openssl rand -base64 32`.
+
+### Photo uploads (Vercel Blob)
+
+Profile pictures, bike pictures, and blog cover images are uploaded for
+real (not pasted as a URL) via [Vercel Blob](https://vercel.com/docs/storage/vercel-blob).
+
+1. In your Vercel project: **Storage** tab → **Create Database** → **Blob**.
+2. Connect it to your project — Vercel adds `BLOB_READ_WRITE_TOKEN` to
+   your project's environment variables automatically.
+3. Redeploy so the running app picks up the new variable.
+
+Locally, if `BLOB_READ_WRITE_TOKEN` isn't set, uploads are written into
+`public/uploads/` on your own machine instead, so the feature is fully
+testable without a Blob account. That fallback is disabled in production
+(a real deployment's filesystem doesn't persist between deploys) — if
+uploads fail with a storage-not-configured error on the live site, this
+is the token that's missing.
 
 ### Email verification / notifications (Resend, free)
 

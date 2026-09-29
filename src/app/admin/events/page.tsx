@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { getAllEventsAdmin } from "@/lib/admin-queries";
 import { formatDateTime } from "@/lib/utils";
 import EventRowActions from "@/components/admin/event-row-actions";
@@ -6,7 +8,11 @@ import EventRowActions from "@/components/admin/event-row-actions";
 export const dynamic = "force-dynamic";
 
 export default async function AdminEventsPage() {
-  const allEvents = await getAllEventsAdmin();
+  const [allEvents, session] = await Promise.all([
+    getAllEventsAdmin(),
+    getServerSession(authOptions),
+  ]);
+  const isModerator = session!.user.role === "MODERATOR";
 
   return (
     <div>
@@ -14,12 +20,14 @@ export default async function AdminEventsPage() {
         <h2 className="font-display text-xl font-semibold uppercase tracking-wide text-brz-white">
           Events ({allEvents.length})
         </h2>
-        <Link
-          href="/admin/events/new"
-          className="rounded-md bg-brz-red px-4 py-2 text-sm font-bold uppercase tracking-wide text-brz-black hover:bg-brz-amber"
-        >
-          + New event
-        </Link>
+        {!isModerator && (
+          <Link
+            href="/admin/events/new"
+            className="rounded-md bg-brz-red px-4 py-2 text-sm font-bold uppercase tracking-wide text-brz-ink hover:bg-brz-amber"
+          >
+            + New event
+          </Link>
+        )}
       </div>
 
       <div className="mt-5 space-y-3">
@@ -53,13 +61,15 @@ export default async function AdminEventsPage() {
                 >
                   View
                 </Link>
-                <Link
-                  href={`/admin/events/${e.id}/edit`}
-                  className="text-sm font-semibold text-brz-red hover:underline"
-                >
-                  Edit
-                </Link>
-                <EventRowActions eventId={e.id} />
+                {!isModerator && (
+                  <Link
+                    href={`/admin/events/${e.id}/edit`}
+                    className="text-sm font-semibold text-brz-red hover:underline"
+                  >
+                    Edit
+                  </Link>
+                )}
+                <EventRowActions eventId={e.id} canDelete={!isModerator} />
               </div>
             </div>
           );

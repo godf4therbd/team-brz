@@ -3,6 +3,15 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+// A curated set of icons that fit a riding club's medals — no icon library
+// or upload needed, these are just emoji, which render everywhere.
+const ICON_CHOICES = [
+  "🏅", "🥇", "🥈", "🥉", "🏆", "🎖️", "👑", "🛡️",
+  "🧭", "🏁", "🚩", "🔥", "⭐", "🌟", "💯", "🚀",
+  "🏍️", "🛣️", "⛰️", "🌊", "🌅", "🌧️", "🔧", "⛽",
+  "🎪", "🤝", "❤️", "🎗️",
+];
+
 export default function NewMedalForm() {
   const router = useRouter();
   const [form, setForm] = useState({
@@ -43,18 +52,38 @@ export default function NewMedalForm() {
           {error}
         </p>
       )}
-      <div className="flex gap-3">
-        <div className="w-16">
-          <label className="mb-1 block text-xs uppercase tracking-wide text-brz-mute">
-            Icon
-          </label>
+      <div>
+        <label className="mb-1 block text-xs uppercase tracking-wide text-brz-mute">
+          Icon
+        </label>
+        <div className="flex flex-wrap gap-1.5">
+          {ICON_CHOICES.map((icon) => (
+            <button
+              key={icon}
+              type="button"
+              onClick={() => setForm((f) => ({ ...f, icon }))}
+              className={
+                "flex h-9 w-9 items-center justify-center rounded-md border text-lg transition " +
+                (form.icon === icon
+                  ? "border-brz-red bg-brz-red/10"
+                  : "border-brz-line hover:border-brz-red/60")
+              }
+              aria-pressed={form.icon === icon}
+              title={icon}
+            >
+              {icon}
+            </button>
+          ))}
           <input
             value={form.icon}
             onChange={(e) => setForm((f) => ({ ...f, icon: e.target.value }))}
-            className="field text-center"
+            className="field h-9 w-14 px-2 text-center"
             maxLength={4}
+            title="Or type your own emoji"
           />
         </div>
+      </div>
+      <div className="flex gap-3">
         <div className="flex-1">
           <label className="mb-1 block text-xs uppercase tracking-wide text-brz-mute">
             Name
@@ -96,7 +125,7 @@ export default function NewMedalForm() {
       <button
         type="submit"
         disabled={loading}
-        className="rounded-md bg-brz-red px-5 py-2 font-display text-sm font-bold uppercase tracking-wide text-brz-black hover:bg-brz-amber disabled:opacity-60"
+        className="rounded-md bg-brz-red px-5 py-2 font-display text-sm font-bold uppercase tracking-wide text-brz-ink hover:bg-brz-amber disabled:opacity-60"
       >
         {loading ? "Creating..." : "Create medal"}
       </button>

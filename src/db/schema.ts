@@ -17,9 +17,16 @@ export const users = sqliteTable("users", {
   bikeModel: text("bike_model"),
   bio: text("bio"),
   avatarUrl: text("avatar_url"),
+  bikePhotoUrl: text("bike_photo_url"),
   city: text("city"),
-  // ADMIN can manage everything, MEMBER is a regular account
-  role: text("role", { enum: ["ADMIN", "MEMBER"] })
+  // ADMIN and CO_ADMIN have identical, full permissions everywhere in the
+  // app — CO_ADMIN exists only so the club can have more than one person
+  // with full access without sharing the founding ADMIN account.
+  // MODERATOR is deliberately limited: can approve members and remove/
+  // cancel listings & events, but can't verify riders, award medals,
+  // change anyone's role, or write blog/news posts.
+  // MEMBER is a regular account.
+  role: text("role", { enum: ["ADMIN", "CO_ADMIN", "MODERATOR", "MEMBER"] })
     .notNull()
     .default("MEMBER"),
   // approved = admin let them into the club roster at all
@@ -48,6 +55,8 @@ export const usersRelations = relations(users, ({ many }) => ({
   eventRegistrations: many(eventRegistrations),
   listings: many(listings),
   eventsCreated: many(events),
+  blogPosts: many(blogPosts),
+  newsPosts: many(newsPosts),
 }));
 
 // ---------- Medals ----------
@@ -210,4 +219,49 @@ export const listings = sqliteTable("listings", {
 
 export const listingsRelations = relations(listings, ({ one }) => ({
   seller: one(users, { fields: [listings.sellerId], references: [users.id] }),
+}));
+
+// ---------- Blog (long-form: cover image + rich body) ----------
+export const blogPosts = sqliteTable("blog_posts", {
+  id: text("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  coverImage: text("cover_image"),
+  body: text("body").notNull(),
+  authorId: text("author_id").references(() => users.id),
+  status: text("status", { enum: ["DRAFT", "PUBLISHED"] })
+    .notNull()
+    .default("PUBLISHED"),
+  publishedAt: text("published_at")
+    .notNull()
+    .default(sql`(current_timestamp)`),
+  createdAt: text("created_at")
+    .notNull()
+    .default(sql`(current_timestamp)`),
+});
+
+export const blogPostsRelations = relations(blogPosts, ({ one }) => ({
+  author: one(users, { fields: [blogPosts.authorId], references: [users.id] }),
+}));
+
+// ---------- News (short blurb + optional external source link) ----------
+export const newsPosts = sqliteTable("news_posts", {
+  id: text("id").primaryKey(),
+  title: text("title").notNull(),
+  body: text("body").notNull(),
+  sourceUrl: text("source_url"),
+  authorId: text("author_id").references(() => users.id),
+  status: text("status", { enum: ["DRAFT", "PUBLISHED"] })
+    .notNull()
+    .default("PUBLISHED"),
+  publishedAt: text("published_at")
+    .notNull()
+    .default(sql`(current_timestamp)`),
+  createdAt: text("created_at")
+    .notNull()
+    .default(sql`(current_timestamp)`),
+});
+
+export const newsPostsRelations = relations(newsPosts, ({ one }) => ({
+  author: one(users, { fields: [newsPosts.authorId], references: [users.id] }),
 }));

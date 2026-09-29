@@ -36,7 +36,7 @@ export default async function MarketplacePage({
         </div>
         <Link
           href="/marketplace/new"
-          className="rounded-md bg-brz-red px-5 py-2.5 font-display text-sm font-bold uppercase tracking-wide text-brz-black hover:bg-brz-amber"
+          className="rounded-md bg-brz-red px-5 py-2.5 font-display text-sm font-bold uppercase tracking-wide text-brz-ink hover:bg-brz-amber"
         >
           + Sell an item
         </Link>

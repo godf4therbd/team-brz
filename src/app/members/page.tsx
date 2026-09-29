@@ -24,8 +24,17 @@ export default async function MembersPage() {
             href={`/members/${m.id}`}
             className="card flex items-start gap-3 p-4 transition hover:border-brz-red"
           >
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-2 border-brz-red bg-brz-steel font-display text-lg font-bold text-brz-red">
-              {m.name.charAt(0).toUpperCase()}
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-brz-red bg-brz-steel font-display text-lg font-bold text-brz-red">
+              {m.avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={m.avatarUrl}
+                  alt={m.name}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                m.name.charAt(0).toUpperCase()
+              )}
             </div>
             <div className="min-w-0">
               <p className="flex items-center gap-1 truncate font-display font-semibold uppercase tracking-wide text-brz-white">

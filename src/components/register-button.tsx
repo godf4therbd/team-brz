@@ -37,7 +37,7 @@ export default function RegisterButton({
     return (
       <Link
         href={`/login?callbackUrl=/events/${slug}`}
-        className="inline-block rounded-md bg-brz-red px-6 py-2.5 font-display text-sm font-bold uppercase tracking-wide text-brz-black hover:bg-brz-amber"
+        className="inline-block rounded-md bg-brz-red px-6 py-2.5 font-display text-sm font-bold uppercase tracking-wide text-brz-ink hover:bg-brz-amber"
       >
         Sign in to register
       </Link>
@@ -77,7 +77,7 @@ export default function RegisterButton({
         className={
           registered
             ? "flex items-center gap-2 rounded-md border border-brz-line px-6 py-2.5 font-display text-sm font-bold uppercase tracking-wide text-brz-white hover:border-red-500 hover:text-red-400"
-            : "flex items-center gap-2 rounded-md bg-brz-red px-6 py-2.5 font-display text-sm font-bold uppercase tracking-wide text-brz-black hover:bg-brz-amber"
+            : "flex items-center gap-2 rounded-md bg-brz-red px-6 py-2.5 font-display text-sm font-bold uppercase tracking-wide text-brz-ink hover:bg-brz-amber"
         }
       >
         {loading && <Spinner size="1.1em" />}

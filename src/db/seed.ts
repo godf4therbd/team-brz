@@ -128,8 +128,45 @@ async function main() {
     },
   ];
 
-  await db.insert(schema.users).values([admin, ...members]);
-  console.log(`Created ${1 + members.length} users`);
+  // Second admin-tier account (identical permissions to ADMIN) and a
+  // Moderator (approve members + remove/cancel listings & events only) —
+  // see src/lib/require-admin.ts for exactly what each role can do.
+  const coAdmin = {
+    id: id(),
+    name: "Mahdi Rahman",
+    email: "coadmin@teambrz.com",
+    passwordHash,
+    phone: "+880 1711-000007",
+    bikeModel: "Kawasaki Ninja 250",
+    bio: "Co-runs the club with Rafiq — handles logistics for the bigger tours.",
+    city: "Dhaka",
+    role: "CO_ADMIN" as const,
+    approved: true,
+    verified: true,
+    emailVerified: true,
+    joinedAt: daysFromNow(-600),
+  };
+
+  const moderator = {
+    id: id(),
+    name: "Priya Das",
+    email: "moderator@teambrz.com",
+    passwordHash,
+    phone: "+880 1711-000008",
+    bikeModel: "Yamaha FZS-Fi",
+    bio: "Keeps the member queue and marketplace tidy.",
+    city: "Dhaka",
+    role: "MODERATOR" as const,
+    approved: true,
+    verified: true,
+    emailVerified: true,
+    joinedAt: daysFromNow(-200),
+  };
+
+  await db
+    .insert(schema.users)
+    .values([admin, coAdmin, moderator, ...members]);
+  console.log(`Created ${3 + members.length} users`);
 
   const [nusrat, tanvir, farhan, sadia] = members;
 
@@ -336,8 +373,58 @@ async function main() {
   ]);
   console.log("Created marketplace listings");
 
+  // ---------- Blog & News ----------
+  await db.insert(schema.blogPosts).values([
+    {
+      id: id(),
+      slug: "sylhet-tea-garden-tour-recap",
+      title: "Recap: Our Sylhet Tea Garden Tour",
+      body:
+        "Twenty-five riders, two days, and more tea than we could drink. This year's Sylhet run was the biggest yet — we left Dhaka before sunrise, regrouped in Bhairab for breakfast, and rolled into Srimangal by early afternoon.\n\nThe rain held off just long enough for the group photo at the tea estate. Huge thanks to everyone who came out, and to the newer riders who handled the wet patches near Sreemangal like pros.\n\nNext stop: planning is already underway for the Cox's Bazar coastal run.",
+      authorId: admin.id,
+      status: "PUBLISHED",
+      publishedAt: daysFromNow(-40),
+    },
+    {
+      id: id(),
+      slug: "why-we-started-team-brz",
+      title: "Why We Started Team Brz",
+      body:
+        "Back in 2012, finding a riding group in Dhaka that actually rode — rather than just posting bike photos online — was harder than it should've been. Team Brz started as five of us meeting up on Fridays, and it grew into what you see today.\n\nWe're still guided by the same rule we started with: ride safe, look out for each other, and always leave room for one more person at the table.",
+      authorId: admin.id,
+      status: "PUBLISHED",
+      publishedAt: daysFromNow(-300),
+    },
+  ]);
+
+  await db.insert(schema.newsPosts).values([
+    {
+      id: id(),
+      title: "Registration open: Cox's Bazar Coastal Run",
+      body:
+        "Sign-ups for our biggest tour of the year are live now. Capacity is 30 riders and spots have gone fast in past years — register early on the Events page.",
+      sourceUrl: null,
+      authorId: admin.id,
+      status: "PUBLISHED",
+      publishedAt: daysFromNow(-5),
+    },
+    {
+      id: id(),
+      title: "New helmet safety standard takes effect nationwide",
+      body:
+        "A new BSTI helmet certification requirement comes into effect this quarter. If you're shopping for a new lid, check for the updated sticker before you buy.",
+      sourceUrl: "https://example.com/helmet-safety-standard",
+      authorId: coAdmin.id,
+      status: "PUBLISHED",
+      publishedAt: daysFromNow(-10),
+    },
+  ]);
+  console.log("Created blog and news posts");
+
   console.log("\nSeed complete!");
   console.log("Admin login: admin@teambrz.com / password123");
+  console.log("Co-admin login: coadmin@teambrz.com / password123");
+  console.log("Moderator login: moderator@teambrz.com / password123");
   console.log("Member login (approved): nusrat@teambrz.com / password123");
   console.log("Member login (pending approval): imran@teambrz.com / password123");
 

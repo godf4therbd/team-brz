@@ -1,21 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/require-admin";
+import { requireStaff, isAdminRole } from "@/lib/require-admin";
 import { db, users } from "@/db";
-import { and, count, eq, ne } from "drizzle-orm";
+import { and, count, eq, inArray, ne } from "drizzle-orm";
 import { z } from "zod";
 import { sendVerifiedBadgeEmail } from "@/lib/email";
 
 const schema = z.object({
   approved: z.boolean().optional(),
   verified: z.boolean().optional(),
-  role: z.enum(["ADMIN", "MEMBER"]).optional(),
+  role: z.enum(["ADMIN", "CO_ADMIN", "MODERATOR", "MEMBER"]).optional(),
 });
+
+const FULL_ADMIN_ROLES = ["ADMIN", "CO_ADMIN"] as const;
 
 export async function PATCH(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const { session, error } = await requireAdmin();
+  // Moderators can reach this endpoint too (to approve/unapprove members),
+  // but only Admin/Co-Admin may touch `verified` or `role` — enforced
+  // below, since requireStaff() alone can't know which fields the body
+  // will contain.
+  const { session, error } = await requireStaff();
   if (error) return error;
 
   const body = await req.json().catch(() => null);
@@ -25,6 +31,16 @@ export async function PATCH(
   }
   if (Object.keys(parsed.data).length === 0) {
     return NextResponse.json({ error: "Nothing to update." }, { status: 400 });
+  }
+
+  if (
+    session!.user.role === "MODERATOR" &&
+    Object.keys(parsed.data).some((k) => k !== "approved")
+  ) {
+    return NextResponse.json(
+      { error: "Moderators can only approve or unapprove members." },
+      { status: 403 }
+    );
   }
 
   // Look up the current row first so we only email on a real
@@ -41,13 +57,18 @@ export async function PATCH(
     );
   }
 
-  // Demoting an admin to MEMBER is the one change that can lock everyone
-  // out of the admin panel, so it gets two guards: you can never demote
+  // Demoting a full admin (ADMIN or CO_ADMIN — the two are equal in power)
+  // down to MEMBER/MODERATOR is the one change that can lock everyone out
+  // of the admin panel, so it gets two guards: you can never demote
   // yourself (even if other admins exist — do it from another admin's
-  // account), and the last remaining admin can never be demoted at all.
-  const isDemotingAdmin =
-    before.role === "ADMIN" && parsed.data.role === "MEMBER";
-  if (isDemotingAdmin) {
+  // account), and the last remaining full admin can never be demoted at
+  // all.
+  const wasFullAdmin = isAdminRole(before.role);
+  const willStayFullAdmin =
+    parsed.data.role === undefined || isAdminRole(parsed.data.role);
+  const isDemotingFullAdmin = wasFullAdmin && !willStayFullAdmin;
+
+  if (isDemotingFullAdmin) {
     if (before.id === session!.user.id) {
       return NextResponse.json(
         { error: "You can't remove your own admin access." },
@@ -57,7 +78,9 @@ export async function PATCH(
     const [{ value: otherAdmins }] = await db
       .select({ value: count() })
       .from(users)
-      .where(and(eq(users.role, "ADMIN"), ne(users.id, before.id)));
+      .where(
+        and(inArray(users.role, FULL_ADMIN_ROLES), ne(users.id, before.id))
+      );
     if (otherAdmins === 0) {
       return NextResponse.json(
         { error: "Can't demote the last remaining admin." },

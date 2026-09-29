@@ -18,8 +18,17 @@ export default async function MemberProfilePage({
   return (
     <div className="mx-auto max-w-2xl px-4 py-12 md:px-6">
       <div className="flex items-center gap-4">
-        <div className="flex h-20 w-20 items-center justify-center rounded-full border-2 border-brz-red bg-brz-steel font-display text-3xl font-bold text-brz-red">
-          {member.name.charAt(0).toUpperCase()}
+        <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-brz-red bg-brz-steel font-display text-3xl font-bold text-brz-red">
+          {member.avatarUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={member.avatarUrl}
+              alt={member.name}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            member.name.charAt(0).toUpperCase()
+          )}
         </div>
         <div>
           <h1 className="flex items-center gap-2 font-display text-2xl font-bold uppercase tracking-wide text-brz-white">
@@ -36,6 +45,17 @@ export default async function MemberProfilePage({
 
       {member.bio && (
         <p className="mt-6 text-brz-white/90">{member.bio}</p>
+      )}
+
+      {member.bikePhotoUrl && (
+        <div className="card mt-6 overflow-hidden">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={member.bikePhotoUrl}
+            alt={`${member.name}'s bike`}
+            className="max-h-96 w-full object-cover"
+          />
+        </div>
       )}
 
       <div className="card mt-6 p-5">

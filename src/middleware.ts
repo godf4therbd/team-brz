@@ -16,8 +16,30 @@ export async function middleware(req: NextRequest) {
       return NextResponse.redirect(loginUrl);
     }
 
-    if (token.role !== "ADMIN") {
+    const role = token.role;
+    const isAdminRole = role === "ADMIN" || role === "CO_ADMIN";
+    const isStaffRole = isAdminRole || role === "MODERATOR";
+
+    if (!isStaffRole) {
       return NextResponse.redirect(new URL("/", req.url));
+    }
+
+    // Moderators get a cut-down admin panel: they can approve members and
+    // remove/cancel listings & events, but can't manage medals, create or
+    // edit events, or write blog/news posts. Bounce them out of those
+    // sub-routes here rather than letting the page render and relying only
+    // on the API to 403 — a redirect is a much clearer signal than a page
+    // full of failed fetches.
+    if (role === "MODERATOR") {
+      const blockedForModerator =
+        pathname.startsWith("/admin/medals") ||
+        pathname === "/admin/events/new" ||
+        /^\/admin\/events\/[^/]+\/edit$/.test(pathname) ||
+        pathname.startsWith("/admin/blog") ||
+        pathname.startsWith("/admin/news");
+      if (blockedForModerator) {
+        return NextResponse.redirect(new URL("/admin", req.url));
+      }
     }
   }
 

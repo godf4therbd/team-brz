@@ -7,6 +7,7 @@ import "@fontsource/inter/500.css";
 import "@fontsource/inter/600.css";
 import "./globals.css";
 import Providers from "@/components/providers";
+import ThemeProvider from "@/components/theme-provider";
 import Nav from "@/components/nav";
 import Footer from "@/components/footer";
 
@@ -35,14 +36,30 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    // suppressHydrationWarning: the inline script below sets data-theme on
+    // this element before React hydrates, based on localStorage/system
+    // preference — that's expected to differ from the server-rendered
+    // markup (which has no data-theme) and isn't a real mismatch.
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Runs before paint so a light-mode visitor never sees a flash of
+            the dark theme. Keep the storage key ("team-brz-theme") in sync
+            with components/theme-provider.tsx. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem("team-brz-theme");if(t!=="light"&&t!=="dark"){t="dark";}document.documentElement.setAttribute("data-theme",t);}catch(e){document.documentElement.setAttribute("data-theme","dark");}})();`,
+          }}
+        />
+      </head>
       <body className="font-body antialiased">
         <Providers>
-          <div className="flex min-h-screen flex-col">
-            <Nav />
-            <main className="flex-1">{children}</main>
-            <Footer />
-          </div>
+          <ThemeProvider>
+            <div className="flex min-h-screen flex-col">
+              <Nav />
+              <main className="flex-1">{children}</main>
+              <Footer />
+            </div>
+          </ThemeProvider>
         </Providers>
       </body>
     </html>

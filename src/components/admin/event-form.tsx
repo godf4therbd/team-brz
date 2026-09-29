@@ -228,7 +228,7 @@ export default function EventForm({
       <button
         type="submit"
         disabled={loading}
-        className="w-full rounded-md bg-brz-red py-2.5 font-display font-bold uppercase tracking-wide text-brz-black transition hover:bg-brz-amber disabled:opacity-60"
+        className="w-full rounded-md bg-brz-red py-2.5 font-display font-bold uppercase tracking-wide text-brz-ink transition hover:bg-brz-amber disabled:opacity-60"
       >
         {loading ? "Saving..." : eventId ? "Save changes" : "Create event"}
       </button>

@@ -3,6 +3,7 @@ import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { getMemberById } from "@/lib/queries";
 import MedalBadge from "@/components/medal-badge";
+import PhotoUpload from "@/components/photo-upload";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -17,8 +18,17 @@ export default async function AccountPage() {
   return (
     <div className="mx-auto max-w-2xl px-4 py-12 md:px-6">
       <div className="flex items-center gap-4">
-        <div className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-brz-red bg-brz-steel font-display text-2xl font-bold text-brz-red">
-          {member.name.charAt(0).toUpperCase()}
+        <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-brz-red bg-brz-steel font-display text-2xl font-bold text-brz-red">
+          {member.avatarUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={member.avatarUrl}
+              alt={member.name}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            member.name.charAt(0).toUpperCase()
+          )}
         </div>
         <div>
           <h1 className="font-display text-2xl font-bold uppercase tracking-wide text-brz-white">
@@ -43,9 +53,14 @@ export default async function AccountPage() {
             🛡️ Verified
           </span>
         )}
-        {member.role === "ADMIN" && (
+        {member.role !== "MEMBER" && (
           <span className="badge border border-brz-red bg-brz-red/10 text-brz-red">
-            ⚙️ Admin
+            ⚙️{" "}
+            {member.role === "ADMIN"
+              ? "Admin"
+              : member.role === "CO_ADMIN"
+                ? "Co-Admin"
+                : "Moderator"}
           </span>
         )}
       </div>
@@ -58,7 +73,24 @@ export default async function AccountPage() {
         </p>
       )}
 
-      <div className="card mt-8 p-5">
+      <div className="card mt-8 space-y-4 p-5">
+        <h2 className="font-display text-lg font-semibold uppercase tracking-wide text-brz-white">
+          Photos
+        </h2>
+        <PhotoUpload
+          kind="avatar"
+          currentUrl={member.avatarUrl}
+          label="Profile picture"
+        />
+        <PhotoUpload
+          kind="bike"
+          currentUrl={member.bikePhotoUrl}
+          label="Bike picture"
+          shape="rect"
+        />
+      </div>
+
+      <div className="card mt-6 p-5">
         <h2 className="font-display text-lg font-semibold uppercase tracking-wide text-brz-white">
           Rider info
         </h2>

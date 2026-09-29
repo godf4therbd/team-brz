@@ -49,7 +49,7 @@ export default function NewListingPage() {
         <p className="text-brz-mute">Sign in to list an item for sale.</p>
         <Link
           href="/login?callbackUrl=/marketplace/new"
-          className="mt-4 inline-block rounded-md bg-brz-red px-6 py-2.5 font-display text-sm font-bold uppercase tracking-wide text-brz-black hover:bg-brz-amber"
+          className="mt-4 inline-block rounded-md bg-brz-red px-6 py-2.5 font-display text-sm font-bold uppercase tracking-wide text-brz-ink hover:bg-brz-amber"
         >
           Sign in
         </Link>
@@ -136,7 +136,7 @@ export default function NewListingPage() {
               }}
               className={
                 type === t
-                  ? "flex-1 rounded-md bg-brz-red py-2 font-display text-sm font-bold uppercase tracking-wide text-brz-black"
+                  ? "flex-1 rounded-md bg-brz-red py-2 font-display text-sm font-bold uppercase tracking-wide text-brz-ink"
                   : "flex-1 rounded-md border border-brz-line py-2 font-display text-sm font-bold uppercase tracking-wide text-brz-mute"
               }
             >
@@ -249,7 +249,7 @@ export default function NewListingPage() {
         <button
           type="submit"
           disabled={loading}
-          className="flex w-full items-center justify-center gap-2 rounded-md bg-brz-red py-2.5 font-display font-bold uppercase tracking-wide text-brz-black transition hover:bg-brz-amber disabled:opacity-60"
+          className="flex w-full items-center justify-center gap-2 rounded-md bg-brz-red py-2.5 font-display font-bold uppercase tracking-wide text-brz-ink transition hover:bg-brz-amber disabled:opacity-60"
         >
           {loading && <Spinner size="1.1em" />}
           {loading ? "Publishing..." : "Publish listing"}
