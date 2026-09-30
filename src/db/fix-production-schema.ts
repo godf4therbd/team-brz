@@ -40,7 +40,9 @@ async function tableExists(name: string): Promise<boolean> {
 
 async function columnExists(table: string, column: string): Promise<boolean> {
   const r = await client.execute(`pragma table_info(${table})`);
-  return r.rows.some((row) => (row as any).name === column);
+  return r.rows.some(
+    (row) => (row as unknown as { name: string }).name === column
+  );
 }
 
 async function main() {
@@ -105,7 +107,8 @@ async function main() {
   const tables = await client.execute(
     "select name from sqlite_master where type = 'table' order by name"
   );
-  for (const row of tables.rows) console.log(" -", (row as any).name);
+  for (const row of tables.rows)
+    console.log(" -", (row as unknown as { name: string }).name);
 
   client.close();
 }
