@@ -22,20 +22,40 @@ import * as schema from "./schema";
 // (schema only, zero rows) database file committed to the repo — see
 // "npm run db:build-schema". It always exists, answers build-time queries
 // with empty results, and is never touched at runtime.
+//
+// IMPORTANT: the build-phase client must never be memoized into `_db`.
+// Vercel's serverless runtime can reuse the very same warm Node process
+// (and therefore the same in-memory module state) that "next build"'s
+// page-data-collection step ran in for the first request(s) a fresh
+// deployment serves. If that first call had latched `_db` onto the
+// build-schema.db client, every later request handled by that same warm
+// instance would keep silently querying the empty local build DB instead
+// of the real production database — which is exactly what caused
+// intermittent "no such table: blog_posts" / "no such column:
+// bike_photo_url" errors even right after a redeploy with a verified,
+// already-fixed production schema. Only the real, env-configured client is
+// ever cached; the build-phase client is recreated (and discarded) on
+// every call so it can never leak into runtime request handling.
 let _db: LibSQLDatabase<typeof schema> | null = null;
 
 function getDb(): LibSQLDatabase<typeof schema> {
-  if (!_db) {
-    const isBuildPhase = process.env.NEXT_PHASE === "phase-production-build";
+  const isBuildPhase = process.env.NEXT_PHASE === "phase-production-build";
 
-    const url = isBuildPhase
-      ? `file:${path.join(process.cwd(), "data", "build-schema.db")}`
-      : process.env.DATABASE_URL ||
-        `file:${path.join(process.cwd(), "data", "teambrz.db")}`;
+  if (isBuildPhase) {
+    const client = createClient({
+      url: `file:${path.join(process.cwd(), "data", "build-schema.db")}`,
+    });
+    return drizzle(client, { schema });
+  }
+
+  if (!_db) {
+    const url =
+      process.env.DATABASE_URL ||
+      `file:${path.join(process.cwd(), "data", "teambrz.db")}`;
 
     const client = createClient({
       url,
-      authToken: isBuildPhase ? undefined : process.env.DATABASE_AUTH_TOKEN,
+      authToken: process.env.DATABASE_AUTH_TOKEN,
     });
 
     _db = drizzle(client, { schema });
