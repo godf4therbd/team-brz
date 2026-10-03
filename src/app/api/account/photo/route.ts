@@ -118,7 +118,12 @@ export async function POST(req: NextRequest) {
         { status: 500 }
       );
     }
-  } catch {
+  } catch (err) {
+    // Log the real error — the response to the browser stays generic, but
+    // without this the server logs show nothing at all for a failed
+    // upload, making it impossible to tell a bad/missing Blob token apart
+    // from a network error, a file-size rejection from Blob's own API, etc.
+    console.error("[account/photo] upload failed:", err);
     return NextResponse.json(
       { error: "Upload failed. Please try again." },
       { status: 500 }

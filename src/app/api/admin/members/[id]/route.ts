@@ -9,6 +9,8 @@ const schema = z.object({
   approved: z.boolean().optional(),
   verified: z.boolean().optional(),
   role: z.enum(["ADMIN", "CO_ADMIN", "MODERATOR", "MEMBER"]).optional(),
+  // Same bounds as the name field on signup — see /api/register/route.ts.
+  name: z.string().min(2).max(80).optional(),
 });
 
 const FULL_ADMIN_ROLES = ["ADMIN", "CO_ADMIN"] as const;

@@ -77,7 +77,9 @@ export async function POST(req: NextRequest) {
         { status: 500 }
       );
     }
-  } catch {
+  } catch (err) {
+    // See src/app/api/account/photo/route.ts for why this is logged.
+    console.error("[admin/upload] upload failed:", err);
     return NextResponse.json(
       { error: "Upload failed. Please try again." },
       { status: 500 }

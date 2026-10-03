@@ -59,6 +59,30 @@ export default function MembersTable({
   const [error, setError] = useState<string | null>(null);
   const photosMember = members.find((m) => m.id === photosFor) ?? null;
 
+  // In-progress edits to a member's name, keyed by id — only holds an entry
+  // while that row's input differs from what's saved, so other rows re-render
+  // from `members` (fresh from the server) as normal.
+  const [nameDraft, setNameDraft] = useState<Record<string, string>>({});
+
+  function clearNameDraft(id: string) {
+    setNameDraft((d) => {
+      if (!(id in d)) return d;
+      const next = { ...d };
+      delete next[id];
+      return next;
+    });
+  }
+
+  async function saveName(m: Member) {
+    const next = (nameDraft[m.id] ?? m.name).trim();
+    if (!next || next === m.name) {
+      clearNameDraft(m.id);
+      return;
+    }
+    await patch(m.id, { name: next });
+    clearNameDraft(m.id);
+  }
+
   async function patch(id: string, data: Record<string, unknown>) {
     setBusyId(id);
     setError(null);
@@ -125,7 +149,27 @@ export default function MembersTable({
           {members.map((m) => (
             <tr key={m.id} className="border-b border-brz-line/60 align-top">
               <td className="py-3 pr-3">
-                <p className="font-medium text-brz-white">{m.name}</p>
+                {isModerator ? (
+                  <p className="font-medium text-brz-white">{m.name}</p>
+                ) : (
+                  <input
+                    type="text"
+                    value={nameDraft[m.id] ?? m.name}
+                    disabled={busyId === m.id}
+                    onChange={(e) =>
+                      setNameDraft((d) => ({ ...d, [m.id]: e.target.value }))
+                    }
+                    onBlur={() => saveName(m)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") e.currentTarget.blur();
+                      if (e.key === "Escape") {
+                        clearNameDraft(m.id);
+                        e.currentTarget.blur();
+                      }
+                    }}
+                    className="-ml-1 w-full rounded-md border border-transparent bg-transparent px-1 py-0.5 font-medium text-brz-white hover:border-brz-line focus:border-brz-red focus:bg-brz-black focus:outline-none disabled:opacity-50"
+                  />
+                )}
                 <p className="text-xs text-brz-mute">{m.email}</p>
               </td>
               <td className="py-3 pr-3 text-brz-mute">
