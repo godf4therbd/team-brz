@@ -27,7 +27,15 @@ export async function POST(req: NextRequest) {
       .update(users)
       .set({ resetToken: hashToken(token), resetExpires: expires })
       .where(eq(users.id, user.id));
-    sendPasswordResetEmail(user.email, user.name, token).catch(() => {});
+    // Must be awaited, not fire-and-forget: Vercel can freeze/tear down a
+    // serverless function the instant its HTTP response is sent, which
+    // kills any promise still in flight — so an un-awaited send() here
+    // would often never actually reach Resend at all. The .catch() still
+    // makes sure a failed send never turns into a failed/500 response for
+    // the user; it just no longer races the function's own shutdown.
+    await sendPasswordResetEmail(user.email, user.name, token).catch(
+      () => {}
+    );
   }
 
   return NextResponse.json({

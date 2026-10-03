@@ -62,8 +62,15 @@ export async function POST(req: NextRequest) {
     emailVerifyExpires: verifyExpires,
   });
 
-  // Don't let a slow/failed email hold up account creation.
-  sendVerificationEmail(normalizedEmail, name, verifyToken).catch(() => {});
+  // The .catch() still means a failed send never turns into a failed
+  // signup for the user — but this must be awaited, not fire-and-forget:
+  // Vercel can freeze/tear down a serverless function the instant its HTTP
+  // response goes out, which kills any promise still in flight. An
+  // un-awaited send() here would often never actually reach Resend at all,
+  // which is exactly why verification emails were going missing.
+  await sendVerificationEmail(normalizedEmail, name, verifyToken).catch(
+    () => {}
+  );
 
   return NextResponse.json({
     ok: true,

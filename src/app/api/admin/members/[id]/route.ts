@@ -111,7 +111,11 @@ export async function PATCH(
   }
 
   if (!before.verified && parsed.data.verified === true) {
-    sendVerifiedBadgeEmail(before.email, before.name).catch(() => {});
+    // Awaited, not fire-and-forget — see forgot-password/route.ts for why:
+    // Vercel can tear down a serverless function right after its response
+    // is sent, which silently kills an un-awaited send() before it ever
+    // reaches Resend.
+    await sendVerifiedBadgeEmail(before.email, before.name).catch(() => {});
   }
 
   return NextResponse.json({ ok: true, rowsAffected });
