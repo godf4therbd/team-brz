@@ -4,6 +4,23 @@ import type { LibSQLDatabase } from "drizzle-orm/libsql";
 import path from "path";
 import * as schema from "./schema";
 
+// @libsql/client talks to Turso over plain fetch() POST requests (its own
+// Hrana HTTP client builds a `new Request(url, { method: "POST", ... })`
+// with no `cache` option of its own — see node_modules/@libsql/hrana-client/
+// lib-esm/http/stream.js). Next.js replaces the global `fetch` on the
+// server, and `export const fetchCache = "force-no-store"` in the root
+// layout is supposed to stop it from caching *any* fetch in the app — but
+// Vercel's own function logs showed these exact Turso calls tagged "Using
+// cache" in production, serving back a stale response from before a schema
+// fix even though the live database was already confirmed correct. Rather
+// than depend on route-level config reaching all the way into a
+// third-party library's internal fetch call, we hand libsql a fetch that
+// explicitly forces `cache: "no-store"` on every request it makes, so a
+// stale cached response can never be served for a database read no matter
+// what layer would otherwise be willing to cache it.
+const uncachedFetch: typeof fetch = (input, init) =>
+  fetch(input, { ...init, cache: "no-store" });
+
 // Works two ways with the same code:
 // - Local dev: DATABASE_URL="file:./data/teambrz.db" (no auth token needed)
 // - A host with a persistent volume (Railway, Render, Fly.io): DATABASE_URL
@@ -53,9 +70,13 @@ function getDb(): LibSQLDatabase<typeof schema> {
       process.env.DATABASE_URL ||
       `file:${path.join(process.cwd(), "data", "teambrz.db")}`;
 
+    // Only the real Turso (libsql://) connection needs the uncached-fetch
+    // override — a local "file:" URL (dev, or the volume-backed path on a
+    // host like Railway) never goes over HTTP in the first place.
     const client = createClient({
       url,
       authToken: process.env.DATABASE_AUTH_TOKEN,
+      fetch: url.startsWith("file:") ? undefined : uncachedFetch,
     });
 
     _db = drizzle(client, { schema });
