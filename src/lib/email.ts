@@ -31,7 +31,21 @@ async function send(to: string, subject: string, html: string) {
     return;
   }
   try {
-    await resend.emails.send({ from: FROM, to, subject, html });
+    // The `resend` SDK does NOT throw on an API-level rejection (bad/
+    // unverified from-address, the shared onboarding@resend.dev domain's
+    // "you can only send test emails to your own address" restriction,
+    // etc.) — it resolves normally with `{ data: null, error: {...} }`.
+    // Only a network-level failure (DNS, timeout) throws. So checking just
+    // the throw path, like this used to, silently missed every API-level
+    // rejection: the send "succeeded" from this function's point of view
+    // while Resend dropped the email, with nothing in the logs to show it.
+    const { error } = await resend.emails.send({ from: FROM, to, subject, html });
+    if (error) {
+      console.error(
+        `[email] Resend rejected "${subject}" to ${to}:`,
+        error
+      );
+    }
   } catch (err) {
     // Never let an email failure break the request that triggered it
     // (signup, admin verifying someone, etc.) — just log it.
