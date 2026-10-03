@@ -39,6 +39,7 @@ export default function MembersTable({
   members,
   medals,
   viewerRole,
+  viewerId,
 }: {
   members: Member[];
   medals: Medal[];
@@ -47,6 +48,10 @@ export default function MembersTable({
   // them, matching what the API actually allows (see
   // /api/admin/members/[id]/route.ts).
   viewerRole: Role;
+  // Used only to disable the Delete button on the viewer's own row — the
+  // server refuses a self-delete regardless (see the route above), this
+  // just avoids making them click it to find that out.
+  viewerId: string;
 }) {
   const router = useRouter();
   const isModerator = viewerRole === "MODERATOR";
@@ -126,6 +131,35 @@ export default function MembersTable({
     router.refresh();
   }
 
+  async function removeMember(m: Member) {
+    // Deleting an account is permanent (and the server itself refuses to
+    // delete the last remaining admin or your own account — see
+    // /api/admin/members/[id]/route.ts) — a plain confirm() here is enough
+    // friction to stop a misclick without getting in the way.
+    if (
+      !window.confirm(
+        `Permanently delete ${m.name}'s account? This can't be undone.`
+      )
+    ) {
+      return;
+    }
+    setBusyId(m.id);
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin/members/${m.id}`, {
+        method: "DELETE",
+      });
+      const payload = await res.json().catch(() => null);
+      if (!res.ok) {
+        setError(payload?.error || `Delete failed (${res.status}).`);
+      }
+    } catch {
+      setError("Network error — member may not have been deleted.");
+    }
+    setBusyId(null);
+    router.refresh();
+  }
+
   return (
     <div className="mt-5 overflow-x-auto">
       {error && (
@@ -143,6 +177,7 @@ export default function MembersTable({
             {!isModerator && <th className="py-2 pr-3">Role</th>}
             {!isModerator && <th className="py-2 pr-3">Medals</th>}
             {!isModerator && <th className="py-2 pr-3">Photos</th>}
+            {!isModerator && <th className="py-2 pr-3">Remove</th>}
           </tr>
         </thead>
         <tbody>
@@ -263,6 +298,22 @@ export default function MembersTable({
                     className="rounded-md border border-dashed border-brz-line px-2 py-1 text-xs text-brz-mute hover:border-brz-red hover:text-brz-red"
                   >
                     📷 Edit
+                  </button>
+                </td>
+              )}
+              {!isModerator && (
+                <td className="py-3 pr-3">
+                  <button
+                    onClick={() => removeMember(m)}
+                    disabled={busyId === m.id || m.id === viewerId}
+                    title={
+                      m.id === viewerId
+                        ? "You can't delete your own account."
+                        : undefined
+                    }
+                    className="rounded-md border border-dashed border-red-900 px-2 py-1 text-xs text-red-400 hover:border-red-600 hover:text-red-300 disabled:opacity-50"
+                  >
+                    🗑 Delete
                   </button>
                 </td>
               )}

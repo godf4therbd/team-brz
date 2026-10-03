@@ -26,6 +26,7 @@ export default async function AdminMembersPage() {
         members={members}
         medals={medals}
         viewerRole={session!.user.role}
+        viewerId={session!.user.id}
       />
     </div>
   );

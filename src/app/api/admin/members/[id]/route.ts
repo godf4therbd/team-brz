@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireStaff, isAdminRole } from "@/lib/require-admin";
+import { requireStaff, requireAdmin, isAdminRole } from "@/lib/require-admin";
 import { db, users } from "@/db";
 import { and, count, eq, inArray, ne } from "drizzle-orm";
 import { z } from "zod";
@@ -121,4 +121,70 @@ export async function PATCH(
   }
 
   return NextResponse.json({ ok: true, rowsAffected });
+}
+
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  // Unlike PATCH, deleting a member is Admin/Co-Admin only — a Moderator
+  // can approve/unapprove someone but never remove their account outright.
+  const { session, error } = await requireAdmin();
+  if (error) return error;
+
+  const target = await db.query.users.findFirst({
+    where: eq(users.id, params.id),
+  });
+  if (!target) {
+    return NextResponse.json(
+      { error: `No member found with id ${params.id}.` },
+      { status: 404 }
+    );
+  }
+
+  if (target.id === session!.user.id) {
+    return NextResponse.json(
+      { error: "You can't delete your own account." },
+      { status: 400 }
+    );
+  }
+
+  // Same "never leave the club without an admin" guard as the demotion
+  // check above.
+  if (isAdminRole(target.role)) {
+    const [{ value: otherAdmins }] = await db
+      .select({ value: count() })
+      .from(users)
+      .where(
+        and(inArray(users.role, FULL_ADMIN_ROLES), ne(users.id, target.id))
+      );
+    if (otherAdmins === 0) {
+      return NextResponse.json(
+        { error: "Can't delete the last remaining admin." },
+        { status: 400 }
+      );
+    }
+  }
+
+  try {
+    await db.delete(users).where(eq(users.id, target.id));
+  } catch (err) {
+    // userMedals/eventRegistrations/listings all cascade-delete with the
+    // user (see schema.ts), but blog posts, news posts, events, and medal
+    // awards they *authored/created/awarded* don't — deleting someone who
+    // has any of that content can hit a foreign-key constraint. Rather
+    // than silently 500, say so: the admin can reassign/delete that
+    // content first, or (more commonly) just leave the account in place
+    // and remove their access via role/approved instead.
+    console.error("[admin/members delete] failed:", err);
+    return NextResponse.json(
+      {
+        error:
+          "Couldn't delete this member — they likely have blog posts, news posts, events, or medal awards tied to their account. Reassign or remove that content first, or revoke their access instead of deleting the account.",
+      },
+      { status: 409 }
+    );
+  }
+
+  return NextResponse.json({ ok: true });
 }
