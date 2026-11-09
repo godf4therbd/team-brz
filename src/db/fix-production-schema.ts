@@ -30,14 +30,6 @@ const client = createClient({
   authToken: process.env.DATABASE_AUTH_TOKEN,
 });
 
-async function tableExists(name: string): Promise<boolean> {
-  const r = await client.execute({
-    sql: "select name from sqlite_master where type = 'table' and name = ?",
-    args: [name],
-  });
-  return r.rows.length > 0;
-}
-
 async function columnExists(table: string, column: string): Promise<boolean> {
   const r = await client.execute(`pragma table_info(${table})`);
   return r.rows.some(
@@ -55,52 +47,6 @@ async function main() {
     console.log("→ Adding users.bike_photo_url ...");
     await client.execute(`ALTER TABLE "users" ADD "bike_photo_url" text`);
     console.log("✓ Added users.bike_photo_url.");
-  }
-
-  // --- blog_posts ---
-  if (await tableExists("blog_posts")) {
-    console.log("✓ blog_posts table already exists — skipping.");
-  } else {
-    console.log("→ Creating blog_posts table ...");
-    await client.execute(`
-      CREATE TABLE "blog_posts" (
-        "id" text PRIMARY KEY NOT NULL,
-        "slug" text NOT NULL,
-        "title" text NOT NULL,
-        "cover_image" text,
-        "body" text NOT NULL,
-        "author_id" text,
-        "status" text DEFAULT 'PUBLISHED' NOT NULL,
-        "published_at" text DEFAULT (current_timestamp) NOT NULL,
-        "created_at" text DEFAULT (current_timestamp) NOT NULL,
-        FOREIGN KEY ("author_id") REFERENCES "users"("id") ON UPDATE no action ON DELETE no action
-      )
-    `);
-    await client.execute(
-      `CREATE UNIQUE INDEX "blog_posts_slug_unique" ON "blog_posts" ("slug")`
-    );
-    console.log("✓ Created blog_posts table + unique index on slug.");
-  }
-
-  // --- news_posts ---
-  if (await tableExists("news_posts")) {
-    console.log("✓ news_posts table already exists — skipping.");
-  } else {
-    console.log("→ Creating news_posts table ...");
-    await client.execute(`
-      CREATE TABLE "news_posts" (
-        "id" text PRIMARY KEY NOT NULL,
-        "title" text NOT NULL,
-        "body" text NOT NULL,
-        "source_url" text,
-        "author_id" text,
-        "status" text DEFAULT 'PUBLISHED' NOT NULL,
-        "published_at" text DEFAULT (current_timestamp) NOT NULL,
-        "created_at" text DEFAULT (current_timestamp) NOT NULL,
-        FOREIGN KEY ("author_id") REFERENCES "users"("id") ON UPDATE no action ON DELETE no action
-      )
-    `);
-    console.log("✓ Created news_posts table.");
   }
 
   console.log("\nDone. Current tables:");

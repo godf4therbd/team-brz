@@ -17,8 +17,6 @@ const links = [
   { href: "/events", label: "Events" },
   { href: "/marketplace", label: "Marketplace" },
   { href: "/members", label: "Members" },
-  { href: "/blog", label: "Blog" },
-  { href: "/news", label: "News" },
 ];
 
 export default function Nav() {

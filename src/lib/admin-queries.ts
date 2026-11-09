@@ -1,9 +1,5 @@
-import { db, users, events, listings, blogPosts, newsPosts } from "@/db";
-import { desc, eq } from "drizzle-orm";
-
-// Reused by both admin blog/news lists and their edit pages — never leak
-// passwordHash/tokens just to show "by <name>" on a post.
-const postAuthorColumns = { id: true, name: true } as const;
+import { db, users, events, listings } from "@/db";
+import { desc } from "drizzle-orm";
 
 export async function getAllMembersAdmin() {
   // IMPORTANT: this result is passed straight into a Client Component
@@ -52,24 +48,3 @@ export async function getAllMedalsAdmin() {
   return db.query.medals.findMany();
 }
 
-export async function getAllBlogPostsAdmin() {
-  return db.query.blogPosts.findMany({
-    orderBy: [desc(blogPosts.publishedAt)],
-    with: { author: { columns: postAuthorColumns } },
-  });
-}
-
-export async function getBlogPostByIdAdmin(id: string) {
-  return db.query.blogPosts.findFirst({ where: eq(blogPosts.id, id) });
-}
-
-export async function getAllNewsPostsAdmin() {
-  return db.query.newsPosts.findMany({
-    orderBy: [desc(newsPosts.publishedAt)],
-    with: { author: { columns: postAuthorColumns } },
-  });
-}
-
-export async function getNewsPostByIdAdmin(id: string) {
-  return db.query.newsPosts.findFirst({ where: eq(newsPosts.id, id) });
-}

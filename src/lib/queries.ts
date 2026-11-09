@@ -1,9 +1,5 @@
-import { db, events, listings, users, blogPosts, newsPosts } from "@/db";
+import { db, events, listings, users } from "@/db";
 import { and, count, desc, eq, gte, lt } from "drizzle-orm";
-
-// Public byline columns — never leak passwordHash/tokens onto a blog/news
-// page just to show "by <name>".
-const postAuthorColumns = { id: true, name: true, avatarUrl: true } as const;
 
 // Reused everywhere a query pulls in a related `users` row (seller,
 // registrant, event creator) just to show a name/badge — restricts the
@@ -180,28 +176,3 @@ export async function getFeaturedMembers(limit = 4) {
     .slice(0, limit);
 }
 
-// ---------- Blog & News ----------
-export async function getPublishedBlogPosts(limit?: number) {
-  return db.query.blogPosts.findMany({
-    where: eq(blogPosts.status, "PUBLISHED"),
-    orderBy: [desc(blogPosts.publishedAt)],
-    limit,
-    with: { author: { columns: postAuthorColumns } },
-  });
-}
-
-export async function getBlogPostBySlug(slug: string) {
-  return db.query.blogPosts.findFirst({
-    where: and(eq(blogPosts.slug, slug), eq(blogPosts.status, "PUBLISHED")),
-    with: { author: { columns: postAuthorColumns } },
-  });
-}
-
-export async function getPublishedNewsPosts(limit?: number) {
-  return db.query.newsPosts.findMany({
-    where: eq(newsPosts.status, "PUBLISHED"),
-    orderBy: [desc(newsPosts.publishedAt)],
-    limit,
-    with: { author: { columns: postAuthorColumns } },
-  });
-}

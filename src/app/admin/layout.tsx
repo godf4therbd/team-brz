@@ -8,8 +8,6 @@ const links = [
   { href: "/admin/events", label: "Events" },
   { href: "/admin/marketplace", label: "Marketplace" },
   { href: "/admin/medals", label: "Medals", adminOnly: true },
-  { href: "/admin/blog", label: "Blog", adminOnly: true },
-  { href: "/admin/news", label: "News", adminOnly: true },
 ];
 
 export default async function AdminLayout({
