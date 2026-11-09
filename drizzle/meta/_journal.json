@@ -30,12 +30,5 @@
       "tag": "0003_parched_green_goblin",
       "breakpoints": true
     },
-    {
-      "idx": 4,
-      "version": "6",
-      "when": 1793480930756,
-      "tag": "0004_drop_blog_posts",
-      "breakpoints": true
-    }
   ]
 }

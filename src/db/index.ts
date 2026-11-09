@@ -47,12 +47,12 @@ const uncachedFetch: typeof fetch = (input, init) =>
 // deployment serves. If that first call had latched `_db` onto the
 // build-schema.db client, every later request handled by that same warm
 // instance would keep silently querying the empty local build DB instead
-// of the real production database — which is exactly what caused
-// intermittent "no such table: blog_posts" / "no such column:
-// bike_photo_url" errors even right after a redeploy with a verified,
-// already-fixed production schema. Only the real, env-configured client is
-// ever cached; the build-phase client is recreated (and discarded) on
-// every call so it can never leak into runtime request handling.
+// of the real production database — which is exactly the sort of stale
+// build-state issue that can happen after a partial or interrupted deploy
+// while schema metadata is still catching up. Only the real,
+// env-configured client is ever cached; the build-phase client is
+// recreated (and discarded) on every call so it can never leak into
+// runtime request handling.
 let _db: LibSQLDatabase<typeof schema> | null = null;
 
 function getDb(): LibSQLDatabase<typeof schema> {

@@ -1,14 +1,11 @@
 // One-off diagnostic + repair script.
 //
-// Why this exists: `npm run db:migrate` reported success, but the live site
-// still throws "no such table: blog_posts" and "no such column:
-// bike_photo_url" on production. That means drizzle's own bookkeeping table
-// (`__drizzle_migrations`) already had migration 0003 marked as applied on
-// this database — from an earlier partial/interrupted run — so the migrator
-// silently skipped it instead of re-running it. This script bypasses that
-// bookkeeping entirely: it inspects the live schema directly and applies
-// only whatever is actually still missing, so it's safe to run more than
-// once.
+// Why this exists: `npm run db:migrate` can report success even when the live
+// site is still missing a column or table because drizzle's bookkeeping table
+// (`__drizzle_migrations`) may already have marked an earlier migration as
+// applied after a partial or interrupted deployment. This script bypasses that
+// bookkeeping entirely: it inspects the live schema directly and applies only
+// whatever is actually still missing, so it's safe to run more than once.
 //
 // Run with:  npx tsx src/db/fix-production-schema.ts
 // (loads DATABASE_URL / DATABASE_AUTH_TOKEN from .env.local, same as
