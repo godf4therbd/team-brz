@@ -7,8 +7,9 @@ import { id as genId } from "@/lib/utils";
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { slug: string } }
+  { params: paramsPromise }: { params: Promise<{ slug: string }> }
 ) {
+  const params = await paramsPromise;
   const session = await getServerSession(authOptions);
   if (!session) {
     return NextResponse.json({ error: "Please sign in first." }, { status: 401 });
@@ -92,8 +93,9 @@ export async function POST(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { slug: string } }
+  { params: paramsPromise }: { params: Promise<{ slug: string }> }
 ) {
+  const params = await paramsPromise;
   const session = await getServerSession(authOptions);
   if (!session) {
     return NextResponse.json({ error: "Please sign in first." }, { status: 401 });

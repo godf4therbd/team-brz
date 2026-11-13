@@ -14,9 +14,10 @@ function isStaffRole(role?: string) {
 }
 
 const links = [
-  { href: "/events", label: "Events" },
-  { href: "/marketplace", label: "Marketplace" },
   { href: "/members", label: "Members" },
+  { href: "/events/mega-tour-2026", label: "Mega Tour 2026" },
+  { href: "/events/mega-tour-2026/check", label: "Check Payment" },
+  { href: "/marketplace", label: "Marketplace" },
 ];
 
 export default function Nav() {

@@ -17,8 +17,9 @@ const FULL_ADMIN_ROLES = ["ADMIN", "CO_ADMIN"] as const;
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params: paramsPromise }: { params: Promise<{ id: string }> }
 ) {
+  const params = await paramsPromise;
   // Moderators can reach this endpoint too (to approve/unapprove members),
   // but only Admin/Co-Admin may touch `verified` or `role` — enforced
   // below, since requireStaff() alone can't know which fields the body
@@ -125,8 +126,9 @@ export async function PATCH(
 
 export async function DELETE(
   _req: NextRequest,
-  { params }: { params: { id: string } }
+  { params: paramsPromise }: { params: Promise<{ id: string }> }
 ) {
+  const params = await paramsPromise;
   // Unlike PATCH, deleting a member is Admin/Co-Admin only — a Moderator
   // can approve/unapprove someone but never remove their account outright.
   const { session, error } = await requireAdmin();

@@ -25,11 +25,6 @@ export default function Footer() {
               </p>
               <ul className="space-y-1.5 text-brz-mute">
                 <li>
-                  <a href="/events" className="hover:text-brz-red">
-                    Events
-                  </a>
-                </li>
-                <li>
                   <a href="/members" className="hover:text-brz-red">
                     Members
                   </a>

@@ -12,8 +12,9 @@ const patchSchema = z.object({
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params: paramsPromise }: { params: Promise<{ id: string }> }
 ) {
+  const params = await paramsPromise;
   const session = await getServerSession(authOptions);
   if (!session) {
     return NextResponse.json({ error: "Please sign in first." }, { status: 401 });

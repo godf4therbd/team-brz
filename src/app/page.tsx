@@ -241,37 +241,6 @@ export default async function Home() {
         )}
       </section>
 
-      {/* Testimonials */}
-      {/*
-        Sample/placeholder quotes — swap these for real member quotes
-        (with their permission) whenever you have some. First names only,
-        not tied to any real member record.
-      */}
-      <section className="border-y border-brz-line bg-brz-charcoal/70">
-        <div className="mx-auto max-w-7xl 2xl:max-w-[1500px] px-4 py-16 md:px-6">
-          <h2 className="text-center font-display text-3xl font-bold uppercase tracking-wide text-brz-white">
-            What our members say
-          </h2>
-          <div className="mt-10 grid gap-6 md:grid-cols-3">
-            <Testimonial
-              quote="Found this club through a friend and never looked back. The tours are organized properly, and everyone actually rides."
-              name="Tanvir"
-              detail="Member since 2023"
-            />
-            <Testimonial
-              quote="Sold my old helmet and bought a jacket through the marketplace — both from verified members. Way better than random Facebook groups."
-              name="Nusrat"
-              detail="Member since 2024"
-            />
-            <Testimonial
-              quote="Earned my first medal on the hill-tour last year. This club actually recognizes the riders who show up."
-              name="Fahim"
-              detail="Member since 2022"
-            />
-          </div>
-        </div>
-      </section>
-
       {/* CTA */}
       <section className="mx-auto max-w-7xl 2xl:max-w-[1500px] px-4 py-16 md:px-6">
         <div className="card relative overflow-hidden p-10 text-center">
@@ -327,26 +296,6 @@ function Mission({
         {title}
       </h3>
       <p className="mt-2 text-sm text-brz-mute">{desc}</p>
-    </div>
-  );
-}
-
-function Testimonial({
-  quote,
-  name,
-  detail,
-}: {
-  quote: string;
-  name: string;
-  detail: string;
-}) {
-  return (
-    <div className="card p-6">
-      <p className="text-brz-mute">&ldquo;{quote}&rdquo;</p>
-      <p className="mt-4 font-display text-sm font-semibold uppercase tracking-wide text-brz-white">
-        {name}
-      </p>
-      <p className="text-xs text-brz-mute">{detail}</p>
     </div>
   );
 }

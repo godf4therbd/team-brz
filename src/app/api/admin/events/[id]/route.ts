@@ -19,8 +19,9 @@ const schema = z.object({
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params: paramsPromise }: { params: Promise<{ id: string }> }
 ) {
+  const params = await paramsPromise;
   // Moderators can only cancel an event (status: "CANCELLED" and nothing
   // else in the same request) — editing any other field needs Admin/Co-Admin.
   const { session, error } = await requireStaff();
@@ -56,8 +57,9 @@ export async function PATCH(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params: paramsPromise }: { params: Promise<{ id: string }> }
 ) {
+  const params = await paramsPromise;
   const { error } = await requireAdmin();
   if (error) return error;
 
