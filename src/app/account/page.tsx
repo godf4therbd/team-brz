@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { getMemberById } from "@/lib/queries";
 import MedalBadge from "@/components/medal-badge";
 import PhotoUpload from "@/components/photo-upload";
+import GearManager from "@/components/gear-manager";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -107,6 +108,15 @@ export default async function AccountPage() {
 
       <div className="card mt-6 p-5">
         <h2 className="font-display text-lg font-semibold uppercase tracking-wide text-brz-white">
+          My gear
+        </h2>
+        <div className="mt-3">
+          <GearManager items={member.gear} />
+        </div>
+      </div>
+
+      <div className="card mt-6 p-5">
+        <h2 className="font-display text-lg font-semibold uppercase tracking-wide text-brz-white">
           Medals
         </h2>
         {member.medals.length ? (
@@ -122,7 +132,7 @@ export default async function AccountPage() {
           </div>
         ) : (
           <p className="mt-2 text-sm text-brz-mute">
-            No medals yet — join a ride and earn your first one.
+            No medals yet.
           </p>
         )}
       </div>

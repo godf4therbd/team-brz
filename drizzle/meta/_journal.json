@@ -64,6 +64,13 @@
       "when": 1794622818540,
       "tag": "0008_mega_tour_serial",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1794626200823,
+      "tag": "0009_member_gear",
+      "breakpoints": true
     }
   ]
 }

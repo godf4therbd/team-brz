@@ -2,6 +2,10 @@ import { getMemberById } from "@/lib/queries";
 import { notFound } from "next/navigation";
 import MedalBadge from "@/components/medal-badge";
 import ListingCard from "@/components/listing-card";
+import GearList from "@/components/gear-list";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { isAdminRole } from "@/lib/require-admin";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +17,10 @@ export default async function MemberProfilePage({
   // Next.js 15+: params is a Promise — reading `.id` without awaiting gave
   // undefined, so every profile 404'd.
   const { id } = await params;
-  const member = await getMemberById(id);
+  const [member, session] = await Promise.all([
+    getMemberById(id),
+    getServerSession(authOptions),
+  ]);
   if (!member || !member.approved) notFound();
 
   const activeListings = member.listings.filter((l) => l.status === "ACTIVE");
@@ -58,6 +65,22 @@ export default async function MemberProfilePage({
             alt={`${member.name}'s bike`}
             className="max-h-96 w-full object-cover"
           />
+        </div>
+      )}
+
+      {member.gear.length > 0 && (
+        <div className="card mt-6 p-5">
+          <h2 className="font-display text-lg font-semibold uppercase tracking-wide text-brz-white">
+            Gear
+          </h2>
+          <div className="mt-3">
+            {/* Owner manages gear from /account; admins can remove
+                anything inappropriate right here. */}
+            <GearList
+              items={member.gear}
+              canDelete={isAdminRole(session?.user.role)}
+            />
+          </div>
         </div>
       )}
 

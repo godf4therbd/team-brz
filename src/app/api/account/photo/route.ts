@@ -4,34 +4,13 @@ import { authOptions } from "@/lib/auth";
 import { isAdminRole } from "@/lib/require-admin";
 import { db, users } from "@/db";
 import { eq } from "drizzle-orm";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
+import {
+  storeImage,
+  validateImage,
+  StorageNotConfiguredError,
+} from "@/lib/storage";
 
-// Real upload, not a paste-a-URL field: profile/bike photos go to Vercel
-// Blob storage (see the `put()` call below) once BLOB_READ_WRITE_TOKEN is
-// configured. Locally, without that token, we fall back to writing into
-// public/uploads/ so the feature is testable without a Blob account — but
-// that fallback is refused outside development, since a real deployment's
-// filesystem is ephemeral/read-only and a "successful" upload would just
-// silently vanish on the next deploy.
-const ALLOWED_TYPES = new Set([
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-  "image/gif",
-]);
-// The browser (components/photo-upload.tsx) shrinks and converts whatever
-// image a member picks to JPEG before sending it, so in practice uploads
-// arrive well under this. 4.5MB is also Vercel's hard request-body cap.
-const MAX_BYTES = 4.5 * 1024 * 1024;
-
-const EXT_BY_TYPE: Record<string, string> = {
-  "image/jpeg": "jpg",
-  "image/png": "png",
-  "image/webp": "webp",
-  "image/gif": "gif",
-};
-
+// Profile / bike photo upload. Storage details live in lib/storage.ts.
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session) {
@@ -79,49 +58,18 @@ export async function POST(req: NextRequest) {
   if (!(file instanceof File)) {
     return NextResponse.json({ error: "No file uploaded." }, { status: 400 });
   }
-  if (!ALLOWED_TYPES.has(file.type)) {
-    return NextResponse.json(
-      { error: "Couldn't process that image. Please try a JPG or PNG." },
-      { status: 400 }
-    );
+  const invalid = validateImage(file);
+  if (invalid) {
+    return NextResponse.json({ error: invalid }, { status: 400 });
   }
-  if (file.size > MAX_BYTES) {
-    return NextResponse.json(
-      { error: "Image is too large to upload. Please try a smaller photo." },
-      { status: 400 }
-    );
-  }
-
-  const ext = EXT_BY_TYPE[file.type] || "jpg";
-  const filename = `${kind}-${targetUserId}-${Date.now()}.${ext}`;
 
   let url: string;
   try {
-    if (process.env.BLOB_READ_WRITE_TOKEN) {
-      const { put } = await import("@vercel/blob");
-      const blob = await put(`${kind}s/${filename}`, file, {
-        access: "public",
-        addRandomSuffix: true,
-        contentType: file.type,
-      });
-      url = blob.url;
-    } else if (process.env.NODE_ENV !== "production") {
-      // Local-dev-only fallback — never runs against a real deployment.
-      const dir = path.join(process.cwd(), "public", "uploads", `${kind}s`);
-      await mkdir(dir, { recursive: true });
-      const buffer = Buffer.from(await file.arrayBuffer());
-      await writeFile(path.join(dir, filename), buffer);
-      url = `/uploads/${kind}s/${filename}`;
-    } else {
-      return NextResponse.json(
-        {
-          error:
-            "Photo storage isn't configured. Set BLOB_READ_WRITE_TOKEN (Vercel Blob) in the deployment's environment variables.",
-        },
-        { status: 500 }
-      );
-    }
+    url = await storeImage(`${kind}s`, `${kind}-${targetUserId}-${Date.now()}`, file);
   } catch (err) {
+    if (err instanceof StorageNotConfiguredError) {
+      return NextResponse.json({ error: err.message }, { status: 500 });
+    }
     // Log the real error — the response to the browser stays generic, but
     // without this the server logs show nothing at all for a failed
     // upload, making it impossible to tell a bad/missing Blob token apart

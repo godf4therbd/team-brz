@@ -7,6 +7,7 @@ import {
   uniqueIndex,
 } from "drizzle-orm/sqlite-core";
 import { relations, sql } from "drizzle-orm";
+import { GEAR_CATEGORIES } from "../lib/gear";
 
 // ---------- Users ----------
 export const users = sqliteTable("users", {
@@ -47,6 +48,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   medals: many(userMedals, { relationName: "medal_owner" }),
   medalsAwarded: many(userMedals, { relationName: "medal_awarder" }),
   listings: many(listings),
+  gear: many(memberGear),
 }));
 
 // ---------- Medals ----------
@@ -184,3 +186,28 @@ export const megaTourPaymentsRelations = relations(
     }),
   })
 );
+
+// ---------- Member gear ----------
+// Riding gear a member shows off on their profile (helmet, jacket, …).
+export const memberGear = sqliteTable(
+  "member_gear",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    category: text("category", { enum: GEAR_CATEGORIES }).notNull(),
+    brand: text("brand").notNull(), // e.g. "LS2"
+    model: text("model"), // e.g. "FF800 Storm"
+    note: text("note"), // short, e.g. "DOT + ECE, size M"
+    photoUrl: text("photo_url"),
+    createdAt: text("created_at")
+      .notNull()
+      .default(sql`(current_timestamp)`),
+  },
+  (t) => [index("member_gear_user_idx").on(t.userId)]
+);
+
+export const memberGearRelations = relations(memberGear, ({ one }) => ({
+  user: one(users, { fields: [memberGear.userId], references: [users.id] }),
+}));

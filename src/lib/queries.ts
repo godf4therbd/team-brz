@@ -1,4 +1,4 @@
-import { db, listings, users } from "@/db";
+import { db, listings, memberGear, users } from "@/db";
 import { and, count, desc, eq } from "drizzle-orm";
 
 // Reused everywhere a query pulls in a related `users` row (seller,
@@ -83,6 +83,7 @@ export async function getMemberById(userId: string) {
     with: {
       medals: { with: { medal: true } },
       listings: true,
+      gear: { orderBy: [memberGear.createdAt] },
     },
   });
 }
