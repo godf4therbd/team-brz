@@ -3,6 +3,7 @@ import { authOptions } from "@/lib/auth";
 import { isAdminRole } from "@/lib/require-admin";
 import { getMegaTourPaymentsAdmin } from "@/lib/admin-queries";
 import MegaTourPaymentsTable from "@/components/admin/mega-tour-payments-table";
+import MegaTourExportButtons from "@/components/admin/mega-tour-export-buttons";
 
 export const dynamic = "force-dynamic";
 
@@ -17,16 +18,11 @@ export default async function AdminMegaTourPage() {
 
   return (
     <div>
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <h2 className="font-display text-xl font-semibold uppercase tracking-wide text-brz-white">
           Mega Tour 2026 payments ({payments.length})
         </h2>
-        <a
-          href="/api/admin/mega-tour/export"
-          className="rounded-md border border-brz-line px-4 py-2 text-sm font-semibold text-brz-white transition hover:border-brz-red hover:text-brz-red"
-        >
-          ⬇ Download CSV
-        </a>
+        <MegaTourExportButtons />
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
