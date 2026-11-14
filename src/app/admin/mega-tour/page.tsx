@@ -39,6 +39,7 @@ export default async function AdminMegaTourPage() {
       <MegaTourPaymentsTable
         payments={payments.map((p) => ({
           id: p.id,
+          serial: p.serial,
           createdAt: p.createdAt,
           name: p.name,
           phone: p.phone,

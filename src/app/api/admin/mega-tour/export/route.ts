@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireStaff } from "@/lib/require-admin";
 import { getMegaTourPaymentsAdmin } from "@/lib/admin-queries";
+import { passId } from "@/lib/mega-tour";
 
 // Quote every cell, and neutralise a leading = @ (or + / - not followed by
 // a digit) so a value like "=HYPERLINK(...)" typed into the public form
@@ -18,12 +19,13 @@ export async function GET() {
 
   const rows = await getMegaTourPaymentsAdmin();
   const header = [
-    "Submitted (Dhaka)", "Name", "Phone", "Role", "Bike", "Reg number",
+    "Pass ID", "Submitted (Dhaka)", "Name", "Phone", "Role", "Bike", "Reg number",
     "Blood group", "Emergency contact", "Reference", "Method",
     "Sender number", "Transaction ID", "Confirmed", "Confirmed by",
   ];
   const lines = rows.map((r) =>
     [
+      passId(r.serial),
       new Date(r.createdAt + "Z").toLocaleString("en-GB", { timeZone: "Asia/Dhaka" }),
       r.name, r.phone, r.role === "PILLION" ? "Pillion" : "Rider",
       r.bikeModel, r.regNumber, r.bloodGroup, r.emergencyContact, r.reference,

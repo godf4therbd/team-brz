@@ -2,9 +2,11 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { passId } from "@/lib/mega-tour";
 
 export type MegaTourPaymentRow = {
   id: string;
+  serial: number | null;
   createdAt: string;
   name: string;
   phone: string;
@@ -58,6 +60,7 @@ export default function MegaTourPaymentsTable({
       return (
         p.name.toLowerCase().includes(q) ||
         p.txId.toLowerCase().includes(q) ||
+        passId(p.serial).toLowerCase().includes(q) ||
         (p.reference ?? "").toLowerCase().includes(q) ||
         (qDigits.length >= 3 &&
           [p.phone, p.senderNumber ?? ""].some((n) =>
@@ -119,7 +122,7 @@ export default function MegaTourPaymentsTable({
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search name, phone, TxID, reference…"
+          placeholder="Search name, phone, TxID, pass ID…"
           className="w-full rounded-md border border-brz-line bg-brz-black px-3 py-2 text-sm text-brz-white outline-none placeholder:text-brz-mute/60 focus:border-brz-red sm:max-w-sm"
         />
         <div className="flex gap-1">
@@ -168,6 +171,9 @@ export default function MegaTourPaymentsTable({
                     aria-expanded={open}
                   >
                     <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-mono text-xs text-brz-mute">
+                        {passId(p.serial)}
+                      </span>
                       <span className="font-display font-semibold uppercase tracking-wide text-brz-white">
                         {p.name}
                       </span>

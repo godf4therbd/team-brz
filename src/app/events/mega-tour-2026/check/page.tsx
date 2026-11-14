@@ -1,36 +1,85 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import MegaTourPass from "@/components/mega-tour-pass";
+import { passId } from "@/lib/mega-tour";
 
 type Result =
   | { found: false }
-  | { found: true; submittedAt: string; name: string; role: string; method: string; txId: string; bloodGroup: string; confirmed: boolean };
+  | {
+      found: true;
+      submittedAt: string;
+      name: string;
+      role: string;
+      method: string;
+      txId: string;
+      bloodGroup: string;
+      regNumber: string;
+      serial: number | null;
+      phone: string;
+      confirmed: boolean;
+    };
 
+const CHECK_PATH = "/events/mega-tour-2026/check";
+
+// useSearchParams needs a Suspense boundary on a statically rendered page.
 export default function CheckPaymentPage() {
+  return (
+    <Suspense>
+      <CheckPayment />
+    </Suspense>
+  );
+}
+
+function CheckPayment() {
+  const searchParams = useSearchParams();
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
   const [error, setError] = useState("");
+  const [origin, setOrigin] = useState("");
+  const autoChecked = useRef(false);
 
-  async function handleCheck(e: React.FormEvent) {
-    e.preventDefault();
+  const check = useCallback(async (number: string) => {
     setLoading(true);
     setResult(null);
     setError("");
     try {
-      const res = await fetch(`/api/mega-tour-payment?phone=${encodeURIComponent(phone)}`);
+      const res = await fetch(
+        `/api/mega-tour-payment?phone=${encodeURIComponent(number)}`
+      );
       if (!res.ok) throw new Error();
       setResult(await res.json());
+      // Keep the number in the URL so a refresh shows the same pass.
+      window.history.replaceState(
+        null,
+        "",
+        `${CHECK_PATH}?phone=${encodeURIComponent(number)}`
+      );
     } catch {
       setError("কিছু একটা সমস্যা হয়েছে, আবার চেষ্টা করুন।");
     }
     setLoading(false);
-  }
+  }, []);
 
-  const methodLabel: Record<string, string> = {
-    bKash: "bKash", Nagad: "Nagad", Rocket: "Rocket", "BRAC Bank": "BRAC Bank",
-  };
+  // Opened from a pass's QR code (…/check?phone=017…): fill in and check.
+  useEffect(() => {
+    setOrigin(window.location.origin);
+    if (autoChecked.current) return;
+    const fromUrl = (searchParams.get("phone") ?? "").replace(/\D/g, "");
+    if (fromUrl.length >= 11) {
+      autoChecked.current = true;
+      setPhone(fromUrl);
+      check(fromUrl);
+    }
+  }, [searchParams, check]);
+
+  function handleCheck(e: React.FormEvent) {
+    e.preventDefault();
+    check(phone);
+  }
 
   return (
     <div className="mx-auto max-w-lg px-4 py-12 md:px-6">
@@ -42,12 +91,12 @@ export default function CheckPaymentPage() {
         Payment Check
       </h1>
       <p className="mt-2 text-sm text-brz-mute">
-        যে নম্বর থেকে payment করেছেন, সেই নম্বর দিয়ে payment status দেখুন।
+        যে নম্বর দিয়ে registration বা payment করেছেন, সেই নম্বর দিয়ে আপনার pass ও payment status দেখুন।
       </p>
 
       <form onSubmit={handleCheck} className="card mt-8 p-6 space-y-4">
         <div>
-          <label className="mb-1 block text-xs uppercase tracking-wide text-brz-mute">যে নম্বর থেকে পেমেন্ট করেছেন</label>
+          <label className="mb-1 block text-xs uppercase tracking-wide text-brz-mute">মোবাইল নম্বর</label>
           <input
             type="tel"
             required
@@ -89,32 +138,29 @@ export default function CheckPaymentPage() {
       )}
 
       {result && result.found && (
-        <div className="card mt-4 overflow-hidden">
-          {result.confirmed ? (
-            <div className="flex items-center gap-3 bg-green-950/40 px-5 py-3 border-b border-brz-line">
-              <span className="text-xl">✅</span>
-              <div>
-                <p className="font-semibold text-green-400 text-sm">Payment Confirmed!</p>
-                <p className="text-xs text-brz-mute">আপনার registration সম্পন্ন হয়েছে।</p>
-              </div>
-            </div>
-          ) : (
-            <div className="flex items-center gap-3 bg-yellow-950/40 px-5 py-3 border-b border-brz-line">
-              <span className="text-xl">⏳</span>
-              <div>
-                <p className="font-semibold text-yellow-300 text-sm">Submission পাওয়া গেছে</p>
-                <p className="text-xs text-brz-mute">Admin যাচাই করার পর confirm করা হবে।</p>
-              </div>
-            </div>
-          )}
-          <div className="divide-y divide-brz-line p-5 space-y-0">
-            <Row label="নাম" value={result.name} />
-            <Row label="ধরন" value={result.role} />
-            {result.bloodGroup && <Row label="রক্তের গ্রুপ" value={result.bloodGroup} />}
-            <Row label="Payment Method" value={methodLabel[result.method] ?? result.method} />
+        <div className="mt-8">
+          <MegaTourPass
+            data={result}
+            checkUrl={`${origin}${CHECK_PATH}?phone=${result.phone}`}
+          />
+
+          <p
+            className={
+              "mx-auto mt-5 max-w-[360px] text-center text-sm " +
+              (result.confirmed ? "text-green-400" : "text-yellow-300")
+            }
+          >
+            {result.confirmed
+              ? "✅ Payment confirmed — এই pass-এর screenshot রেখে দিন।"
+              : "⏳ Submission পাওয়া গেছে। Admin যাচাই করে confirm করলে status “Paid” হয়ে যাবে।"}
+          </p>
+
+          <dl className="card mx-auto mt-4 max-w-[360px] divide-y divide-brz-line px-5 py-1 text-sm">
+            <Row label="Pass ID" value={passId(result.serial)} />
+            <Row label="Payment Method" value={result.method} />
             <Row label="Transaction ID" value={result.txId} />
             <Row label="Submitted" value={result.submittedAt} />
-          </div>
+          </dl>
         </div>
       )}
     </div>
@@ -123,9 +169,9 @@ export default function CheckPaymentPage() {
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex justify-between gap-4 py-2.5 text-sm">
-      <span className="text-brz-mute">{label}</span>
-      <span className="font-semibold text-brz-white text-right">{value}</span>
+    <div className="flex justify-between gap-4 py-2.5">
+      <dt className="text-brz-mute">{label}</dt>
+      <dd className="text-right font-semibold text-brz-white">{value}</dd>
     </div>
   );
 }

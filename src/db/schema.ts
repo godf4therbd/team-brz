@@ -4,6 +4,7 @@ import {
   integer,
   primaryKey,
   index,
+  uniqueIndex,
 } from "drizzle-orm/sqlite-core";
 import { relations, sql } from "drizzle-orm";
 
@@ -140,6 +141,9 @@ export const megaTourPayments = sqliteTable(
   "mega_tour_payments",
   {
     id: text("id").primaryKey(),
+    // Permanent pass/seat number (1, 2, 3…) shown on the member's pass —
+    // assigned once at submission so deleting a row never renumbers others.
+    serial: integer("serial"),
     name: text("name").notNull(),
     phone: text("phone").notNull(),
     phoneDigits: text("phone_digits").notNull(),
@@ -167,6 +171,7 @@ export const megaTourPayments = sqliteTable(
   (t) => [
     index("mega_tour_payments_phone_idx").on(t.phoneDigits),
     index("mega_tour_payments_sender_idx").on(t.senderDigits),
+    uniqueIndex("mega_tour_payments_serial_uniq").on(t.serial),
   ]
 );
 

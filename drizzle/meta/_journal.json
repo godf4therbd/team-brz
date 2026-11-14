@@ -57,6 +57,13 @@
       "when": 1794620387124,
       "tag": "0007_mega_tour_payments",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1794622818540,
+      "tag": "0008_mega_tour_serial",
+      "breakpoints": true
     }
   ]
 }

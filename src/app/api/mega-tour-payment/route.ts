@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 import { z } from "zod";
-import { desc, eq, or } from "drizzle-orm";
+import { desc, eq, or, sql } from "drizzle-orm";
 import { db, megaTourPayments } from "@/db";
 import { escapeHtml } from "@/lib/email";
 import { id } from "@/lib/utils";
@@ -43,7 +43,7 @@ const schema = z.object({
 
 // Public "Check Payment" lookup — matches either the registration phone or
 // the number the payment was sent from. Returns only what the member
-// already knows about their own submission.
+// already knows about their own submission (it's shown on their pass).
 export async function GET(req: Request) {
   const phone = normalizePhone(new URL(req.url).searchParams.get("phone"));
   if (phone.length < 6) {
@@ -69,6 +69,10 @@ export async function GET(req: Request) {
       method: row.method,
       txId: row.txId,
       bloodGroup: row.bloodGroup ?? "",
+      regNumber: row.regNumber ?? "",
+      serial: row.serial,
+      // Digits-only registration phone — what the pass's QR code encodes.
+      phone: row.phoneDigits,
       confirmed: row.confirmed,
     });
   } catch (e) {
@@ -109,10 +113,24 @@ export async function POST(req: Request) {
 
   // The database is the record of truth: if this fails, the member must
   // be told (they used to see "success" while nothing was saved).
-  try {
-    await db.insert(megaTourPayments).values(row);
-  } catch (e) {
-    console.error("[mega-tour-payment] save failed:", e);
+  // The pass/seat number is computed inside the INSERT itself, so two
+  // simultaneous submissions can't both read the same max. If they still
+  // collide on the unique index, retry with the next number.
+  let saved = false;
+  let lastError: unknown;
+  for (let attempt = 0; attempt < 3 && !saved; attempt++) {
+    try {
+      await db.insert(megaTourPayments).values({
+        ...row,
+        serial: sql`(SELECT COALESCE(MAX(${megaTourPayments.serial}), 0) + 1 FROM ${megaTourPayments})`,
+      });
+      saved = true;
+    } catch (e) {
+      lastError = e;
+    }
+  }
+  if (!saved) {
+    console.error("[mega-tour-payment] save failed:", lastError);
     return NextResponse.json(
       {
         error:

@@ -1,0 +1,3 @@
+ALTER TABLE `mega_tour_payments` ADD `serial` integer;--> statement-breakpoint
+UPDATE `mega_tour_payments` SET `serial` = (SELECT COUNT(*) FROM `mega_tour_payments` AS `p2` WHERE `p2`.`created_at` < `mega_tour_payments`.`created_at` OR (`p2`.`created_at` = `mega_tour_payments`.`created_at` AND `p2`.`id` <= `mega_tour_payments`.`id`));--> statement-breakpoint
+CREATE UNIQUE INDEX `mega_tour_payments_serial_uniq` ON `mega_tour_payments` (`serial`);
