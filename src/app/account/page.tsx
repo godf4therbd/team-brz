@@ -5,6 +5,7 @@ import { getMemberById } from "@/lib/queries";
 import MedalBadge from "@/components/medal-badge";
 import PhotoUpload from "@/components/photo-upload";
 import GearManager from "@/components/gear-manager";
+import MemberCard from "@/components/member-card";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -18,28 +19,27 @@ export default async function AccountPage() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-12 md:px-6">
-      <div className="flex items-center gap-4">
-        <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-brz-red bg-brz-steel font-display text-2xl font-bold text-brz-red">
-          {member.avatarUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={member.avatarUrl}
-              alt={member.name}
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            member.name.charAt(0).toUpperCase()
-          )}
-        </div>
-        <div>
-          <h1 className="font-display text-2xl font-bold uppercase tracking-wide text-brz-white">
-            {member.name}
-          </h1>
-          <p className="text-sm text-brz-mute">{member.email}</p>
-        </div>
-      </div>
+      <MemberCard
+        name={member.name}
+        avatarUrl={member.avatarUrl}
+        verified={member.verified}
+        role={member.role}
+        bikeModel={member.bikeModel}
+        city={member.city}
+      />
+      <p className="mt-3 text-center text-sm text-brz-mute">{member.email}</p>
+      {member.approved && (
+        <p className="mt-1 text-center text-sm">
+          <Link
+            href={`/members/${member.id}`}
+            className="font-semibold text-brz-red hover:text-brz-amber"
+          >
+            View my public profile →
+          </Link>
+        </p>
+      )}
 
-      <div className="mt-6 flex flex-wrap gap-2">
+      <div className="mt-6 flex flex-wrap justify-center gap-2">
         {member.approved ? (
           <span className="badge border border-green-700 bg-green-950/40 text-green-400">
             ✅ Approved member
@@ -49,21 +49,7 @@ export default async function AccountPage() {
             ⏳ Pending admin approval
           </span>
         )}
-        {member.verified && (
-          <span className="badge border border-sky-700 bg-sky-950/40 text-sky-400">
-            🛡️ Verified
-          </span>
-        )}
-        {member.role !== "MEMBER" && (
-          <span className="badge border border-brz-red bg-brz-red/10 text-brz-red">
-            ⚙️{" "}
-            {member.role === "ADMIN"
-              ? "Admin"
-              : member.role === "CO_ADMIN"
-                ? "Co-Admin"
-                : "Moderator"}
-          </span>
-        )}
+        {/* Verified / role badges are on the member card above. */}
       </div>
 
       {!member.approved && (
