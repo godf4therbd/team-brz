@@ -21,11 +21,10 @@ that show up on rider profiles.
 ## Features
 
 - **Auth & membership** — sign up, sign in; every new account starts
-  unapproved. Admins approve members before they can register for events or
-  list items (they can still browse everything while pending).
-- **Events** — tours, meetups, workshops, charity rides. Public list of
-  upcoming/past events, event detail pages, one-click register/cancel,
-  capacity + automatic waitlist, and an **RSS feed** at `/feed.xml`.
+  unapproved. Admins approve members before they can list items (they can still browse everything while pending).
+- **Mega Tour 2026** — a dedicated tour page with registration/payment
+  (`/events/mega-tour-2026`) and a payment status check. Submissions go to
+  Google Sheets plus an admin email; nothing is stored in the database.
 - **Marketplace** — members list bikes or accessories (engine oil, helmets,
   jackets, etc.) with category, price, condition, and photos; mark items
   sold or remove them.
@@ -33,9 +32,9 @@ that show up on rider profiles.
   badge, and medals.
 - **Medals** — admins define medal types (icon + color, e.g. 🎪 Host, 🧭
   Leader, 👑 Founder) and award them to individual riders; medals show on
-  the member directory, profile pages, and event "who's riding" lists.
+  the member directory and profile pages.
 - **Admin panel** (`/admin`) — approve/verify members, promote admins,
-  create/edit/delete events, moderate marketplace listings, manage medal
+  moderate marketplace listings, manage medal
   types and award them.
 - **Email** (via [Resend](https://resend.com), free tier) — a confirm-your-
   address link when someone signs up, a notification when an admin verifies

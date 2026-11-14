@@ -1,39 +1,28 @@
 import Link from "next/link";
 import {
   getAllMembersAdmin,
-  getAllEventsAdmin,
   getAllListingsAdmin,
 } from "@/lib/admin-queries";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminOverviewPage() {
-  const [members, allEvents, allListings] = await Promise.all([
+  const [members, allListings] = await Promise.all([
     getAllMembersAdmin(),
-    getAllEventsAdmin(),
     getAllListingsAdmin(),
   ]);
 
   const pendingApproval = members.filter((m) => !m.approved);
-  const upcomingEvents = allEvents.filter(
-    (e) => new Date(e.startDate) > new Date() && e.status === "PUBLISHED"
-  );
   const activeListings = allListings.filter((l) => l.status === "ACTIVE");
 
   return (
     <div>
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2">
         <StatCard
           label="Members"
           value={members.length}
           sub={`${pendingApproval.length} pending approval`}
           href="/admin/members"
-        />
-        <StatCard
-          label="Events"
-          value={allEvents.length}
-          sub={`${upcomingEvents.length} upcoming`}
-          href="/admin/events"
         />
         <StatCard
           label="Marketplace"

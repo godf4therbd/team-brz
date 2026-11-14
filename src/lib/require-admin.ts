@@ -12,7 +12,7 @@ export function isAdminRole(role?: Role | string | null) {
 }
 
 // MODERATOR sits below ADMIN/CO_ADMIN: can access a cut-down admin panel
-// (approve members, remove/cancel listings & events) but not verify
+// (approve members, remove listings) but not verify
 // riders, award medals, change anyone's role, or write news posts.
 export function isStaffRole(role?: Role | string | null) {
   return isAdminRole(role) || role === "MODERATOR";

@@ -68,8 +68,8 @@ export default async function AccountPage() {
       {!member.approved && (
         <p className="mt-4 rounded-md border border-yellow-800 bg-yellow-950/30 px-4 py-3 text-sm text-yellow-200">
           Your account is waiting on admin approval. You can still browse
-          events and the marketplace, but registering for rides and listing
-          items unlocks once you&apos;re approved.
+          the marketplace, but listing items unlocks once you&apos;re
+          approved.
         </p>
       )}
 

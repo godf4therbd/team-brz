@@ -1,8 +1,8 @@
-import { db, events, listings, users } from "@/db";
-import { and, count, desc, eq, gte, lt } from "drizzle-orm";
+import { db, listings, users } from "@/db";
+import { and, count, desc, eq } from "drizzle-orm";
 
 // Reused everywhere a query pulls in a related `users` row (seller,
-// registrant, event creator) just to show a name/badge — restricts the
+// member) just to show a name/badge — restricts the
 // join to public-facing columns so passwordHash/reset/verify tokens never
 // get loaded into a result that might later get passed to a Client
 // Component. See the same note on getAllMembersAdmin in admin-queries.ts.
@@ -17,40 +17,6 @@ const publicUserColumns = {
   verified: true,
   phone: true,
 } as const;
-
-export async function getUpcomingEvents(limit?: number) {
-  const now = new Date().toISOString();
-  const rows = await db.query.events.findMany({
-    where: and(eq(events.status, "PUBLISHED"), gte(events.startDate, now)),
-    orderBy: [events.startDate],
-    limit,
-    with: { registrations: true },
-  });
-  return rows;
-}
-
-export async function getPastEvents(limit?: number) {
-  const now = new Date().toISOString();
-  const rows = await db.query.events.findMany({
-    where: and(eq(events.status, "PUBLISHED"), lt(events.startDate, now)),
-    orderBy: [desc(events.startDate)],
-    limit,
-    with: { registrations: true },
-  });
-  return rows;
-}
-
-export async function getEventBySlug(slug: string) {
-  return db.query.events.findFirst({
-    where: eq(events.slug, slug),
-    with: {
-      registrations: {
-        with: { user: { columns: publicUserColumns } },
-      },
-      createdBy: { columns: publicUserColumns },
-    },
-  });
-}
 
 export async function getActiveListings(opts?: {
   type?: "BIKE" | "ACCESSORY";
@@ -126,16 +92,12 @@ export async function getAllMedals() {
 }
 
 export async function getStats() {
-  // These only ever feed a "X members / Y events / Z listings" homepage
+  // These only ever feed a "X members / Z listings" homepage
   // counter, so ask the DB for counts directly instead of loading every
   // row (including passwordHash and every other column) just to read
   // `.length`.
-  const [[memberRow], [eventRow], [listingRow]] = await Promise.all([
+  const [[memberRow], [listingRow]] = await Promise.all([
     db.select({ value: count() }).from(users).where(eq(users.approved, true)),
-    db
-      .select({ value: count() })
-      .from(events)
-      .where(eq(events.status, "PUBLISHED")),
     db
       .select({ value: count() })
       .from(listings)
@@ -143,7 +105,6 @@ export async function getStats() {
   ]);
   return {
     members: memberRow.value,
-    events: eventRow.value,
     listings: listingRow.value,
   };
 }

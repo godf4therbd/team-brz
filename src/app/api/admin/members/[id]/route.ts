@@ -171,9 +171,8 @@ export async function DELETE(
   try {
     await db.delete(users).where(eq(users.id, target.id));
   } catch (err) {
-    // userMedals/eventRegistrations/listings all cascade-delete with the
-    // user (see schema.ts), but news posts, events, and medal
-    // awards they *authored/created/awarded* don't — deleting someone who
+    // userMedals/listings all cascade-delete with the user (see
+    // schema.ts), but medal awards they *awarded* don’t — deleting someone who
     // has any of that content can hit a foreign-key constraint. Rather
     // than silently 500, say so: the admin can reassign/delete that
     // content first, or (more commonly) just leave the account in place
@@ -182,7 +181,7 @@ export async function DELETE(
     return NextResponse.json(
       {
         error:
-          "Couldn't delete this member — they likely have news posts, events, or medal awards tied to their account. Reassign or remove that content first, or revoke their access instead of deleting the account.",
+          "Couldn't delete this member — they likely have medal awards tied to their account. Reassign or remove that content first, or revoke their access instead of deleting the account.",
       },
       { status: 409 }
     );

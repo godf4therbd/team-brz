@@ -25,14 +25,11 @@ export async function middleware(req: NextRequest) {
     }
 
     // Moderators get a cut-down admin panel: they can approve members and
-    // remove/cancel listings & events, but can't manage medals or create/edit
-    // events. Bounce them out of those sub-routes here rather than letting the
-    // page render and relying only on the API to 403.
+    // remove listings, but can't manage medals. Bounce them out of that
+    // sub-route here rather than letting the page render and relying only
+    // on the API to 403.
     if (role === "MODERATOR") {
-      const blockedForModerator =
-        pathname.startsWith("/admin/medals") ||
-        pathname === "/admin/events/new" ||
-        /^\/admin\/events\/[^/]+\/edit$/.test(pathname);
+      const blockedForModerator = pathname.startsWith("/admin/medals");
       if (blockedForModerator) {
         return NextResponse.redirect(new URL("/admin", req.url));
       }

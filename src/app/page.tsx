@@ -1,13 +1,11 @@
 import Link from "next/link";
 import Image from "next/image";
-import { getUpcomingEvents, getStats, getFeaturedMembers } from "@/lib/queries";
-import EventCard from "@/components/event-card";
+import { getStats, getFeaturedMembers } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const [upcoming, stats, crew] = await Promise.all([
-    getUpcomingEvents(3),
+  const [stats, crew] = await Promise.all([
     getStats(),
     getFeaturedMembers(4),
   ]);
@@ -50,10 +48,10 @@ export default async function Home() {
             </p>
             <div className="mt-8 flex flex-wrap gap-4">
               <Link
-                href="/events"
+                href="/events/mega-tour-2026"
                 className="rounded-md bg-brz-red px-8 py-3.5 font-display text-sm font-bold uppercase tracking-wider text-brz-ink transition hover:bg-brz-amber"
               >
-                Explore our rides
+                Mega Tour 2026
               </Link>
               <Link
                 href="/register"
@@ -98,9 +96,8 @@ export default async function Home() {
             >
               Become one of us →
             </Link>
-            <div className="mt-8 grid grid-cols-3 gap-4 sm:gap-6">
+            <div className="mt-8 grid grid-cols-2 gap-4 sm:gap-6">
               <BigStat value={stats.members} label="Verified riders" />
-              <BigStat value={stats.events} label="Events run" />
               <BigStat value={stats.listings} label="Marketplace listings" />
             </div>
           </div>
@@ -121,7 +118,7 @@ export default async function Home() {
             <Mission
               icon={<IconRoute />}
               title="Group rides"
-              desc="Tours, city meetups, and workshops — register in a click and see who else is riding."
+              desc="Tours, city meetups, and workshops — across the country — ride with people who share the road."
             />
             <Mission
               icon={<IconShield />}
@@ -139,22 +136,14 @@ export default async function Home() {
 
       {/* Ride gallery */}
       <section className="mx-auto max-w-7xl 2xl:max-w-[1500px] px-4 py-16 md:px-6">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <h2 className="font-display text-3xl font-bold uppercase tracking-wide text-brz-white">
-              From the road
-            </h2>
-            <p className="mt-2 text-brz-mute">
-              Moments from past tours and meetups — more added after every
-              ride.
-            </p>
-          </div>
-          <Link
-            href="/events"
-            className="text-sm font-semibold uppercase tracking-wide text-brz-red hover:text-brz-amber"
-          >
-            See all rides →
-          </Link>
+        <div>
+          <h2 className="font-display text-3xl font-bold uppercase tracking-wide text-brz-white">
+            From the road
+          </h2>
+          <p className="mt-2 text-brz-mute">
+            Moments from past tours and meetups — more added after every
+            ride.
+          </p>
         </div>
         <div className="relative mt-8 aspect-[21/9] overflow-hidden rounded-xl border border-brz-line">
           <Image
@@ -214,32 +203,6 @@ export default async function Home() {
           </div>
         </section>
       )}
-
-      {/* Upcoming events */}
-      <section className="mx-auto max-w-7xl 2xl:max-w-[1500px] px-4 py-16 md:px-6">
-        <div className="flex items-center justify-between">
-          <h2 className="font-display text-3xl font-bold uppercase tracking-wide text-brz-white">
-            Upcoming rides
-          </h2>
-          <Link
-            href="/events"
-            className="text-sm font-semibold uppercase tracking-wide text-brz-red hover:text-brz-amber"
-          >
-            View all →
-          </Link>
-        </div>
-        {upcoming.length ? (
-          <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {upcoming.map((e) => (
-              <EventCard key={e.id} event={e} />
-            ))}
-          </div>
-        ) : (
-          <p className="mt-6 text-brz-mute">
-            Nothing on the calendar right now — check back soon.
-          </p>
-        )}
-      </section>
 
       {/* CTA */}
       <section className="mx-auto max-w-7xl 2xl:max-w-[1500px] px-4 py-16 md:px-6">

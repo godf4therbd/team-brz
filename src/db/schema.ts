@@ -3,7 +3,6 @@ import {
   text,
   integer,
   primaryKey,
-  uniqueIndex,
 } from "drizzle-orm/sqlite-core";
 import { relations, sql } from "drizzle-orm";
 
@@ -22,8 +21,8 @@ export const users = sqliteTable("users", {
   // ADMIN and CO_ADMIN have identical, full permissions everywhere in the
   // app — CO_ADMIN exists only so the club can have more than one person
   // with full access without sharing the founding ADMIN account.
-  // MODERATOR is deliberately limited: can approve members and remove/
-  // cancel listings & events, but can't verify riders, award medals,
+  // MODERATOR is deliberately limited: can approve members and
+  // remove listings, but can't verify riders, award medals,
   // change anyone's role, or write news posts.
   // MEMBER is a regular account.
   role: text("role", { enum: ["ADMIN", "CO_ADMIN", "MODERATOR", "MEMBER"] })
@@ -52,9 +51,7 @@ export const users = sqliteTable("users", {
 export const usersRelations = relations(users, ({ many }) => ({
   medals: many(userMedals, { relationName: "medal_owner" }),
   medalsAwarded: many(userMedals, { relationName: "medal_awarder" }),
-  eventRegistrations: many(eventRegistrations),
   listings: many(listings),
-  eventsCreated: many(events),
 }));
 
 // ---------- Medals ----------
@@ -106,86 +103,6 @@ export const userMedalsRelations = relations(userMedals, ({ one }) => ({
     relationName: "medal_awarder",
   }),
 }));
-
-// ---------- Events ----------
-export const events = sqliteTable("events", {
-  id: text("id").primaryKey(),
-  slug: text("slug").notNull().unique(),
-  title: text("title").notNull(),
-  description: text("description").notNull(),
-  type: text("type", {
-    enum: ["TOUR", "MEETUP", "WORKSHOP", "CHARITY", "OTHER"],
-  })
-    .notNull()
-    .default("TOUR"),
-  location: text("location").notNull(),
-  startDate: text("start_date").notNull(), // ISO datetime
-  endDate: text("end_date"),
-  coverImage: text("cover_image"),
-  // JSON-encoded array of image paths — a simple photo gallery for the
-  // event (e.g. tour recap photos), shown on the event detail page.
-  // Parse with JSON.parse(...) / build with JSON.stringify([...]).
-  photos: text("photos"),
-  capacity: integer("capacity"),
-  status: text("status", {
-    enum: ["DRAFT", "PUBLISHED", "CANCELLED"],
-  })
-    .notNull()
-    .default("PUBLISHED"),
-  createdById: text("created_by_id").references(() => users.id),
-  createdAt: text("created_at")
-    .notNull()
-    .default(sql`(current_timestamp)`),
-});
-
-export const eventsRelations = relations(events, ({ one, many }) => ({
-  createdBy: one(users, {
-    fields: [events.createdById],
-    references: [users.id],
-  }),
-  registrations: many(eventRegistrations),
-}));
-
-export const eventRegistrations = sqliteTable(
-  "event_registrations",
-  {
-    id: text("id").primaryKey(),
-    eventId: text("event_id")
-      .notNull()
-      .references(() => events.id, { onDelete: "cascade" }),
-    userId: text("user_id")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    status: text("status", {
-      enum: ["PENDING", "CONFIRMED", "CANCELLED"],
-    })
-      .notNull()
-      .default("CONFIRMED"),
-    registeredAt: text("registered_at")
-      .notNull()
-      .default(sql`(current_timestamp)`),
-  },
-  (t) => ({
-    uniqPair: uniqueIndex("event_registrations_event_user_uniq").on(
-      t.eventId,
-      t.userId
-    ),
-  })
-);
-
-export const eventRegistrationsRelations = relations(
-  eventRegistrations,
-  ({ one }) => ({
-    event: one(events, {
-      fields: [eventRegistrations.eventId],
-      references: [events.id],
-    }),
-    user: one(users, {
-      fields: [eventRegistrations.userId],
-      references: [users.id],
-    }),
-  })
-);
 
 // ---------- Marketplace ----------
 export const listings = sqliteTable("listings", {

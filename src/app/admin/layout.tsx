@@ -5,7 +5,6 @@ import { authOptions } from "@/lib/auth";
 const links = [
   { href: "/admin", label: "Overview" },
   { href: "/admin/members", label: "Members" },
-  { href: "/admin/events", label: "Events" },
   { href: "/admin/marketplace", label: "Marketplace" },
   { href: "/admin/medals", label: "Medals", adminOnly: true },
 ];

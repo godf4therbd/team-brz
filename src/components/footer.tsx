@@ -18,7 +18,7 @@ export default function Footer() {
               meetups, gear, and the road ahead.
             </p>
           </div>
-          <div className="grid grid-cols-2 gap-8 text-sm sm:grid-cols-3">
+          <div className="grid grid-cols-2 gap-8 text-sm">
             <div>
               <p className="mb-2 font-display uppercase tracking-wide text-brz-white">
                 Club
@@ -63,18 +63,6 @@ export default function Footer() {
                     className="hover:text-brz-red"
                   >
                     Sell an item
-                  </a>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <p className="mb-2 font-display uppercase tracking-wide text-brz-white">
-                Feeds
-              </p>
-              <ul className="space-y-1.5 text-brz-mute">
-                <li>
-                  <a href="/feed.xml" className="hover:text-brz-red">
-                    Events RSS
                   </a>
                 </li>
               </ul>

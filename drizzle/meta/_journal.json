@@ -36,6 +36,13 @@
       "when": 1790600000000,
       "tag": "0004_drop_blog_posts",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1794617893808,
+      "tag": "0005_drop_events",
+      "breakpoints": true
     }
   ]
 }

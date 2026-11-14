@@ -129,7 +129,7 @@ async function main() {
   ];
 
   // Second admin-tier account (identical permissions to ADMIN) and a
-  // Moderator (approve members + remove/cancel listings & events only) —
+  // Moderator (approve members + remove listings only) —
   // see src/lib/require-admin.ts for exactly what each role can do.
   const coAdmin = {
     id: id(),
@@ -190,113 +190,6 @@ async function main() {
     { userId: farhan.id, medalId: guardian.id, awardedById: admin.id, note: "Helped a stranded rider on the highway" },
   ]);
   console.log("Created medals and awards");
-
-  // ---------- Events ----------
-  const eventDefs = [
-    {
-      id: id(),
-      slug: "sylhet-tea-garden-tour",
-      title: "Sylhet Tea Garden Tour",
-      description:
-        "Our flagship 2-day tour through Sylhet's tea gardens. We ride out early Friday, stop for breakfast in Bhairab, and reach Srimangal by afternoon. Overnight stay arranged at a resort — details in the WhatsApp group. Bring rain gear, it's monsoon season.",
-      type: "TOUR" as const,
-      location: "Srimangal, Sylhet",
-      startDate: daysFromNow(21),
-      endDate: daysFromNow(22),
-      capacity: 25,
-      status: "PUBLISHED" as const,
-      createdById: admin.id,
-    },
-    {
-      id: id(),
-      slug: "dhaka-night-meetup-october",
-      title: "Dhaka Night Meetup",
-      description:
-        "Monthly casual meetup at our usual spot — Hatirjheel lakeside. Come hang out, show off any new gear, and plan the next tour over cha and fuchka.",
-      type: "MEETUP" as const,
-      location: "Hatirjheel, Dhaka",
-      startDate: daysFromNow(7),
-      endDate: null,
-      capacity: null,
-      status: "PUBLISHED" as const,
-      createdById: nusrat.id,
-    },
-    {
-      id: id(),
-      slug: "basic-bike-maintenance-workshop",
-      title: "Basic Bike Maintenance Workshop",
-      description:
-        "Hands-on workshop covering chain lube, tyre pressure checks, oil changes, and pre-ride inspection. Great for new riders. We'll have a mechanic from our partner garage running the session.",
-      type: "WORKSHOP" as const,
-      location: "Team Brz Garage, Banani, Dhaka",
-      startDate: daysFromNow(14),
-      endDate: null,
-      capacity: 15,
-      status: "PUBLISHED" as const,
-      createdById: admin.id,
-    },
-    {
-      id: id(),
-      slug: "flood-relief-supply-ride",
-      title: "Flood Relief Supply Ride",
-      description:
-        "We're organizing a charity ride to deliver dry food and medicine to flood-affected families near Sunamganj. Every rider who can carry supplies is welcome — panniers and top boxes especially useful.",
-      type: "CHARITY" as const,
-      location: "Sunamganj",
-      startDate: daysFromNow(35),
-      endDate: null,
-      capacity: null,
-      status: "PUBLISHED" as const,
-      createdById: admin.id,
-    },
-    {
-      id: id(),
-      slug: "cox-bazar-coastal-run",
-      title: "Cox's Bazar Coastal Run",
-      description:
-        "Our biggest tour of the year — three days along the coastal highway ending at the world's longest sea beach. Unforgettable ride, unforgettable sunsets.",
-      type: "TOUR" as const,
-      location: "Cox's Bazar",
-      startDate: daysFromNow(-45),
-      endDate: daysFromNow(-42),
-      capacity: 30,
-      status: "PUBLISHED" as const,
-      createdById: admin.id,
-    },
-    {
-      id: id(),
-      slug: "monsoon-ride-safety-briefing",
-      title: "Monsoon Ride Safety Briefing",
-      description:
-        "A pre-monsoon safety session covering wet-road braking, visibility gear, and route planning around flood-prone areas.",
-      type: "WORKSHOP" as const,
-      location: "Team Brz Garage, Banani, Dhaka",
-      startDate: daysFromNow(-90),
-      endDate: null,
-      capacity: 20,
-      status: "PUBLISHED" as const,
-      createdById: admin.id,
-    },
-  ];
-  await db.insert(schema.events).values(eventDefs);
-  console.log(`Created ${eventDefs.length} events`);
-
-  const [sylhet, meetup, workshop, , coxsbazar, safety] = eventDefs;
-
-  await db.insert(schema.eventRegistrations).values([
-    { id: id(), eventId: sylhet.id, userId: nusrat.id, status: "CONFIRMED" },
-    { id: id(), eventId: sylhet.id, userId: tanvir.id, status: "CONFIRMED" },
-    { id: id(), eventId: sylhet.id, userId: farhan.id, status: "CONFIRMED" },
-    { id: id(), eventId: meetup.id, userId: nusrat.id, status: "CONFIRMED" },
-    { id: id(), eventId: meetup.id, userId: sadia.id, status: "CONFIRMED" },
-    { id: id(), eventId: workshop.id, userId: tanvir.id, status: "CONFIRMED" },
-    { id: id(), eventId: coxsbazar.id, userId: nusrat.id, status: "CONFIRMED" },
-    { id: id(), eventId: coxsbazar.id, userId: tanvir.id, status: "CONFIRMED" },
-    { id: id(), eventId: coxsbazar.id, userId: farhan.id, status: "CONFIRMED" },
-    { id: id(), eventId: coxsbazar.id, userId: admin.id, status: "CONFIRMED" },
-    { id: id(), eventId: safety.id, userId: sadia.id, status: "CONFIRMED" },
-  ]);
-  console.log("Created event registrations");
 
   // ---------- Marketplace listings ----------
   await db.insert(schema.listings).values([

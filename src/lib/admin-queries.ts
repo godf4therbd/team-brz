@@ -1,4 +1,4 @@
-import { db, users, events, listings } from "@/db";
+import { db, users, listings } from "@/db";
 import { desc } from "drizzle-orm";
 
 export async function getAllMembersAdmin() {
@@ -25,13 +25,6 @@ export async function getAllMembersAdmin() {
     },
     orderBy: [desc(users.joinedAt)],
     with: { medals: { with: { medal: true } } },
-  });
-}
-
-export async function getAllEventsAdmin() {
-  return db.query.events.findMany({
-    orderBy: [desc(events.startDate)],
-    with: { registrations: true },
   });
 }
 

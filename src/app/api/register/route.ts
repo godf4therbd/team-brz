@@ -75,6 +75,6 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({
     ok: true,
     message:
-      "Account created! Check your email to confirm your address. An admin also needs to approve your membership before you can register for events or list items — you can still browse everything in the meantime.",
+      "Account created! Check your email to confirm your address. An admin also needs to approve your membership before you can list items — you can still browse everything in the meantime.",
   });
 }
