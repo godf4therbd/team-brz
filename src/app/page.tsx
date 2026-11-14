@@ -1,6 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import { getStats, getFeaturedMembers } from "@/lib/queries";
+import MegaTourCountdown from "@/components/mega-tour-countdown";
+import MegaTourPopup from "@/components/mega-tour-popup";
 
 export const dynamic = "force-dynamic";
 
@@ -64,6 +66,9 @@ export default async function Home() {
         </div>
         <div className="h-1.5 checker-flag-red" />
       </section>
+
+      <MegaTourCountdown />
+      <MegaTourPopup />
 
       {/* Welcome / stats */}
       <section className="mx-auto max-w-7xl 2xl:max-w-[1500px] px-4 py-16 md:px-6 md:py-24">

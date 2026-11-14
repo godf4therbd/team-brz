@@ -1095,3 +1095,31 @@ textarea.field {
 .weather-card-container:hover::before {
   transform: translate(-50px, 50px);
 }
+
+/* ---------- Mega Tour countdown + popup ---------- */
+@keyframes brzTick {
+  from { transform: translateY(-60%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+@keyframes brzGlow {
+  0%, 100% { box-shadow: 0 0 18px rgba(245, 37, 31, 0.35); }
+  50%      { box-shadow: 0 0 34px rgba(245, 37, 31, 0.75); }
+}
+@keyframes brzFadeIn  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes brzFadeOut { from { opacity: 1; } to { opacity: 0; } }
+@keyframes brzPopIn {
+  0%   { transform: translateY(40px) scale(0.85); opacity: 0; }
+  100% { transform: translateY(0) scale(1);       opacity: 1; }
+}
+@keyframes brzPopOut {
+  from { transform: scale(1);    opacity: 1; }
+  to   { transform: scale(0.92); opacity: 0; }
+}
+@keyframes brzKenBurns {
+  from { transform: scale(1.15); }
+  to   { transform: scale(1); }
+}
+@keyframes brzRide {
+  0%   { transform: translateX(-60px) scaleX(-1); }
+  100% { transform: translateX(440px) scaleX(-1); }
+}
