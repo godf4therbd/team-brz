@@ -30,14 +30,6 @@ export const authOptions: NextAuthOptions = {
         );
         if (!valid) return null;
 
-        if (!user.emailVerified) {
-          // A distinct message (rather than returning null, which NextAuth
-          // reports as the generic "CredentialsSignin") so the login page
-          // can tell this apart from a wrong password and point the person
-          // at their inbox instead.
-          throw new Error("EMAIL_NOT_VERIFIED");
-        }
-
         return {
           id: user.id,
           name: user.name,

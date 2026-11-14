@@ -80,29 +80,6 @@ function button(href: string, label: string): string {
   </p>`;
 }
 
-export async function sendVerificationEmail(
-  to: string,
-  name: string,
-  token: string
-) {
-  const link = `${siteUrl()}/api/verify-email?token=${encodeURIComponent(
-    token
-  )}`;
-  await send(
-    to,
-    "Confirm your email — Team Brz",
-    wrapper(
-      "Confirm your email address",
-      `<p>Hi ${escapeHtml(name)},</p>
-       <p>Thanks for joining Team Brz. Click below to confirm this is your
-       email address:</p>
-       ${button(link, "Confirm email")}
-       <p>This link expires in 24 hours. If you didn't create an account,
-       you can ignore this email.</p>`
-    )
-  );
-}
-
 export async function sendVerifiedBadgeEmail(to: string, name: string) {
   await send(
     to,

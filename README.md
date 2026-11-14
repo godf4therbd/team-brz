@@ -36,8 +36,7 @@ that show up on rider profiles.
 - **Admin panel** (`/admin`) — approve/verify members, promote admins,
   moderate marketplace listings, manage medal
   types and award them.
-- **Email** (via [Resend](https://resend.com), free tier) — a confirm-your-
-  address link when someone signs up, a notification when an admin verifies
+- **Email** (via [Resend](https://resend.com), free tier) — a notification when an admin verifies
   a member's badge, and "forgot password" reset links.
 
 ## Getting started
@@ -73,7 +72,7 @@ DATABASE_AUTH_TOKEN=
 NEXTAUTH_SECRET="replace-with-a-long-random-string"
 NEXTAUTH_URL="http://localhost:3000"   # your real domain in production
 
-# Email (signup confirmation, verified-badge notice, password reset).
+# Email (verified-badge notice, password reset).
 # Leave RESEND_API_KEY unset to skip sending emails — the app logs to the
 # console instead and nothing else breaks.
 RESEND_API_KEY=
@@ -105,10 +104,10 @@ testable without a Blob account. That fallback is disabled in production
 uploads fail with a storage-not-configured error on the live site, this
 is the token that's missing.
 
-### Email verification / notifications (Resend, free)
+### Email notifications (Resend, free)
 
-The app sends three kinds of emails through [Resend](https://resend.com):
-a "confirm your email" link at signup, a "you've been verified" notice
+The app sends two kinds of emails through [Resend](https://resend.com):
+a "you've been verified" notice
 when an admin flips a member's verified badge, and "forgot password"
 reset links. Resend's free tier is 100 emails/day (3,000/month), no
 credit card required.
@@ -197,9 +196,9 @@ DATABASE_AUTH_TOKEN=<token from `turso db tokens create <your-db>`>
 
 Run `npm run db:migrate` once locally (or in CI) with those same env vars
 set, to apply the schema to the Turso database, then deploy normally.
-Also set `RESEND_API_KEY` (and optionally `EMAIL_FROM`) if you want signup
-confirmation, verified-badge, and password-reset emails to actually send —
-see "Email verification / notifications" above.
+Also set `RESEND_API_KEY` (and optionally `EMAIL_FROM`) if you want
+verified-badge and password-reset emails to actually send —
+see "Email notifications" above.
 
 ### Postgres
 

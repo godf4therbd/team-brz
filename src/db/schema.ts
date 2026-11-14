@@ -36,13 +36,6 @@ export const users = sqliteTable("users", {
     .notNull()
     .default(sql`(current_timestamp)`),
 
-  // ---- Email verification (confirm-your-address link sent at signup) ----
-  emailVerified: integer("email_verified", { mode: "boolean" })
-    .notNull()
-    .default(false),
-  emailVerifyToken: text("email_verify_token"),
-  emailVerifyExpires: text("email_verify_expires"), // ISO datetime
-
   // ---- Password reset ----
   resetToken: text("reset_token"),
   resetExpires: text("reset_expires"), // ISO datetime

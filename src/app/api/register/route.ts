@@ -3,8 +3,7 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { db, users } from "@/db";
 import { eq } from "drizzle-orm";
-import { id, hashToken } from "@/lib/utils";
-import { sendVerificationEmail } from "@/lib/email";
+import { id } from "@/lib/utils";
 
 const schema = z.object({
   name: z.string().min(2).max(80),
@@ -39,10 +38,6 @@ export async function POST(req: NextRequest) {
   }
 
   const passwordHash = await bcrypt.hash(password, 10);
-  const verifyToken = id();
-  const verifyExpires = new Date(
-    Date.now() + 24 * 60 * 60 * 1000
-  ).toISOString();
 
   await db.insert(users).values({
     id: id(),
@@ -55,26 +50,11 @@ export async function POST(req: NextRequest) {
     role: "MEMBER",
     approved: false,
     verified: false,
-    emailVerified: false,
-    // Only the hash is stored — the raw token only ever exists in the
-    // email we send below. See hashToken() for why.
-    emailVerifyToken: hashToken(verifyToken),
-    emailVerifyExpires: verifyExpires,
   });
-
-  // The .catch() still means a failed send never turns into a failed
-  // signup for the user — but this must be awaited, not fire-and-forget:
-  // Vercel can freeze/tear down a serverless function the instant its HTTP
-  // response goes out, which kills any promise still in flight. An
-  // un-awaited send() here would often never actually reach Resend at all,
-  // which is exactly why verification emails were going missing.
-  await sendVerificationEmail(normalizedEmail, name, verifyToken).catch(
-    () => {}
-  );
 
   return NextResponse.json({
     ok: true,
     message:
-      "Account created! Check your email to confirm your address. An admin also needs to approve your membership before you can list items — you can still browse everything in the meantime.",
+      "Account created! An admin needs to approve your membership before you can list items — you can still browse everything in the meantime.",
   });
 }

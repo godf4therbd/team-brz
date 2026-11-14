@@ -46,7 +46,6 @@ async function main() {
     role: "ADMIN" as const,
     approved: true,
     verified: true,
-    emailVerified: true,
     joinedAt: daysFromNow(-720),
   };
 
@@ -63,7 +62,6 @@ async function main() {
       role: "MEMBER" as const,
       approved: true,
       verified: true,
-      emailVerified: true,
       joinedAt: daysFromNow(-540),
     },
     {
@@ -78,7 +76,6 @@ async function main() {
       role: "MEMBER" as const,
       approved: true,
       verified: true,
-      emailVerified: true,
       joinedAt: daysFromNow(-300),
     },
     {
@@ -93,7 +90,6 @@ async function main() {
       role: "MEMBER" as const,
       approved: true,
       verified: false,
-      emailVerified: true,
       joinedAt: daysFromNow(-120),
     },
     {
@@ -108,7 +104,6 @@ async function main() {
       role: "MEMBER" as const,
       approved: true,
       verified: false,
-      emailVerified: true,
       joinedAt: daysFromNow(-45),
     },
     {
@@ -123,7 +118,6 @@ async function main() {
       role: "MEMBER" as const,
       approved: false, // pending approval, to demo the admin queue
       verified: false,
-      emailVerified: true, // still lets them log in — "approved" gates the club, not the login itself
       joinedAt: daysFromNow(-2),
     },
   ];
@@ -143,7 +137,6 @@ async function main() {
     role: "CO_ADMIN" as const,
     approved: true,
     verified: true,
-    emailVerified: true,
     joinedAt: daysFromNow(-600),
   };
 
@@ -159,7 +152,6 @@ async function main() {
     role: "MODERATOR" as const,
     approved: true,
     verified: true,
-    emailVerified: true,
     joinedAt: daysFromNow(-200),
   };
 

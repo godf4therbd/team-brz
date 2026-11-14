@@ -26,11 +26,7 @@ function LoginForm() {
     });
     setLoading(false);
     if (res?.error) {
-      setError(
-        res.error === "EMAIL_NOT_VERIFIED"
-          ? "Please confirm your email address before signing in — check your inbox for the link we sent when you joined."
-          : "Invalid email or password."
-      );
+      setError("Invalid email or password.");
       return;
     }
     router.push(params.get("callbackUrl") || "/account");

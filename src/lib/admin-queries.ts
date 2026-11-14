@@ -20,7 +20,6 @@ export async function getAllMembersAdmin() {
       role: true,
       approved: true,
       verified: true,
-      emailVerified: true,
       joinedAt: true,
     },
     orderBy: [desc(users.joinedAt)],
