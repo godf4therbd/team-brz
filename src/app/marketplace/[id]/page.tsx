@@ -11,10 +11,11 @@ export const dynamic = "force-dynamic";
 export default async function ListingPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const { id } = await params;
   const [listing, session] = await Promise.all([
-    getListingById(params.id),
+    getListingById(id),
     getServerSession(authOptions),
   ]);
   if (!listing) notFound();

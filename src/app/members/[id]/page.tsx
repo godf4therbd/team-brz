@@ -8,9 +8,12 @@ export const dynamic = "force-dynamic";
 export default async function MemberProfilePage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const member = await getMemberById(params.id);
+  // Next.js 15+: params is a Promise — reading `.id` without awaiting gave
+  // undefined, so every profile 404'd.
+  const { id } = await params;
+  const member = await getMemberById(id);
   if (!member || !member.approved) notFound();
 
   const activeListings = member.listings.filter((l) => l.status === "ACTIVE");

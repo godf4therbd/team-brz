@@ -8,12 +8,11 @@ export const dynamic = "force-dynamic";
 export default async function MarketplacePage({
   searchParams,
 }: {
-  searchParams: { type?: string };
+  searchParams: Promise<{ type?: string }>;
 }) {
+  const { type: rawType } = await searchParams;
   const type =
-    searchParams.type === "BIKE" || searchParams.type === "ACCESSORY"
-      ? searchParams.type
-      : undefined;
+    rawType === "BIKE" || rawType === "ACCESSORY" ? rawType : undefined;
 
   const listings = await getActiveListings({ type });
 
