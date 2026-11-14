@@ -6,40 +6,18 @@ import { useCallback, useEffect, useState } from "react";
 import { useNow } from "@/components/use-now";
 import { MEGA_TOUR_START, timeLeft, tourPhase } from "@/lib/mega-tour";
 
-const SEEN_KEY = "brz-mega-tour-popup-seen";
 const SHOW_AFTER_MS = 1500;
-const ONCE_PER_MS = 24 * 60 * 60 * 1000; // at most once a day per browser
 
-function seenRecently() {
-  try {
-    const t = Number(localStorage.getItem(SEEN_KEY));
-    return Number.isFinite(t) && Date.now() - t < ONCE_PER_MS;
-  } catch {
-    return false; // storage blocked (private mode) — just show it
-  }
-}
-
-function markSeen() {
-  try {
-    localStorage.setItem(SEEN_KEY, String(Date.now()));
-  } catch {
-    /* ignore */
-  }
-}
-
-// "Join Mega Tour" popup on the homepage. Animates in shortly after load,
-// at most once a day, and only before the tour departs.
+// "Join Mega Tour" popup on the homepage. Animates in shortly after every
+// homepage load (by request), and only before the tour departs.
 export default function MegaTourPopup() {
   const [open, setOpen] = useState(false);
   const [closing, setClosing] = useState(false);
   const now = useNow();
 
   useEffect(() => {
-    if (Date.now() >= MEGA_TOUR_START.getTime() || seenRecently()) return;
-    const t = setTimeout(() => {
-      setOpen(true);
-      markSeen();
-    }, SHOW_AFTER_MS);
+    if (Date.now() >= MEGA_TOUR_START.getTime()) return;
+    const t = setTimeout(() => setOpen(true), SHOW_AFTER_MS);
     return () => clearTimeout(t);
   }, []);
 
