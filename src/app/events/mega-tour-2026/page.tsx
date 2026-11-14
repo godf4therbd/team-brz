@@ -244,11 +244,31 @@ export default function MegaTour2026Page() {
                   </svg>
                 </div>
               </Link>
+              {/* Secondary CTA: same pill shape/height as the Register
+                  button beside it, with a dark blurred backing so the text
+                  stays readable over the busy hero photo. No uppercase or
+                  letter-spacing — both break up Bangla glyphs. */}
               <a
                 href="#last-year"
-                className="rounded-md border border-white/40 px-8 py-3.5 font-display text-sm font-bold uppercase tracking-wider text-white transition hover:border-brz-red hover:text-brz-red"
+                className="group inline-flex items-center gap-3 rounded-full border border-white/25 bg-black/55 py-4 pl-7 pr-4 text-[1.05rem] font-bold text-white shadow-[0_10px_20px_rgba(0,0,0,0.4)] backdrop-blur-md transition hover:border-brz-red hover:bg-black/70"
               >
                 গত বছরের ট্যুর দেখুন
+                <span className="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 transition group-hover:border-brz-red group-hover:bg-brz-red">
+                  <svg
+                    viewBox="0 0 24 24"
+                    width="18"
+                    height="18"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.25"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="transition group-hover:translate-y-0.5"
+                    aria-hidden="true"
+                  >
+                    <path d="M12 5v14M6 13l6 6 6-6" />
+                  </svg>
+                </span>
               </a>
             </div>
           </div>
