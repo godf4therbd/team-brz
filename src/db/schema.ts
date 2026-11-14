@@ -3,6 +3,7 @@ import {
   text,
   integer,
   primaryKey,
+  index,
 } from "drizzle-orm/sqlite-core";
 import { relations, sql } from "drizzle-orm";
 
@@ -129,3 +130,52 @@ export const listingsRelations = relations(listings, ({ one }) => ({
   seller: one(users, { fields: [listings.sellerId], references: [users.id] }),
 }));
 
+
+// ---------- Mega Tour 2026 payments ----------
+// Submissions from /events/mega-tour-2026/payment. Members don't need an
+// account to submit, so there's no user FK — phone numbers identify them.
+// phoneDigits/senderDigits hold digits only, so the public "Check Payment"
+// lookup matches no matter how the number was typed (+88, spaces, dashes).
+export const megaTourPayments = sqliteTable(
+  "mega_tour_payments",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    phone: text("phone").notNull(),
+    phoneDigits: text("phone_digits").notNull(),
+    role: text("role", { enum: ["RIDER", "PILLION"] }).notNull(),
+    bikeModel: text("bike_model"),
+    regNumber: text("reg_number"),
+    bloodGroup: text("blood_group"),
+    emergencyContact: text("emergency_contact").notNull(),
+    reference: text("reference"),
+    method: text("method").notNull(), // display label: bKash, Nagad, Rocket, BRAC Bank
+    senderNumber: text("sender_number"),
+    senderDigits: text("sender_digits"),
+    txId: text("tx_id").notNull(),
+    confirmed: integer("confirmed", { mode: "boolean" })
+      .notNull()
+      .default(false),
+    confirmedAt: text("confirmed_at"), // ISO datetime
+    confirmedById: text("confirmed_by_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    createdAt: text("created_at")
+      .notNull()
+      .default(sql`(current_timestamp)`),
+  },
+  (t) => [
+    index("mega_tour_payments_phone_idx").on(t.phoneDigits),
+    index("mega_tour_payments_sender_idx").on(t.senderDigits),
+  ]
+);
+
+export const megaTourPaymentsRelations = relations(
+  megaTourPayments,
+  ({ one }) => ({
+    confirmedBy: one(users, {
+      fields: [megaTourPayments.confirmedById],
+      references: [users.id],
+    }),
+  })
+);

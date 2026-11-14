@@ -23,8 +23,10 @@ that show up on rider profiles.
 - **Auth & membership** — sign up, sign in; every new account starts
   unapproved. Admins approve members before they can list items (they can still browse everything while pending).
 - **Mega Tour 2026** — a dedicated tour page with registration/payment
-  (`/events/mega-tour-2026`) and a payment status check. Submissions go to
-  Google Sheets plus an admin email; nothing is stored in the database.
+  (`/events/mega-tour-2026`) and a public payment status check by phone
+  number. Submissions are saved in the `mega_tour_payments` table and
+  emailed to `ADMIN_EMAIL`; admins confirm them under **Admin → Mega Tour**,
+  which also has search and a CSV download.
 - **Marketplace** — members list bikes or accessories (engine oil, helmets,
   jackets, etc.) with category, price, condition, and photos; mark items
   sold or remove them.
@@ -34,7 +36,7 @@ that show up on rider profiles.
   Leader, 👑 Founder) and award them to individual riders; medals show on
   the member directory and profile pages.
 - **Admin panel** (`/admin`) — approve/verify members, promote admins,
-  moderate marketplace listings, manage medal
+  confirm Mega Tour payments, moderate marketplace listings, manage medal
   types and award them.
 - **Email** (via [Resend](https://resend.com), free tier) — a notification when an admin verifies
   a member's badge, and "forgot password" reset links.

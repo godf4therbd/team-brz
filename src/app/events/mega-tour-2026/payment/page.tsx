@@ -46,6 +46,7 @@ export default function MegaTourPaymentPage() {
   const [copied, setCopied] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   function copy(text: string, key: string) {
     navigator.clipboard.writeText(text);
@@ -56,13 +57,26 @@ export default function MegaTourPaymentPage() {
   async function handlePaymentSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitting(true);
-    await fetch("/api/mega-tour-payment", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...details, regNumber: `${regArea}-${regSeries} ${details.regNumber}`, role, method, senderNumber, txId }),
-    });
-    setSubmitting(false);
-    setSubmitted(true);
+    setSubmitError(null);
+    try {
+      const res = await fetch("/api/mega-tour-payment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...details, regNumber: `${regArea}-${regSeries} ${details.regNumber}`, role, method, senderNumber, txId }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        setSubmitError(
+          data?.error || "দুঃখিত, আপনার তথ্য সেভ করা যায়নি। আবার চেষ্টা করুন।"
+        );
+        return;
+      }
+      setSubmitted(true);
+    } catch {
+      setSubmitError("নেটওয়ার্ক সমস্যা — তথ্য পাঠানো যায়নি। ইন্টারনেট চেক করে আবার চেষ্টা করুন।");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -456,6 +470,15 @@ export default function MegaTourPaymentPage() {
                 className="w-full rounded-md border border-brz-line bg-brz-black px-3 py-2 text-brz-white outline-none focus:border-brz-red placeholder:text-brz-mute/50"
               />
             </div>
+
+            {submitError && (
+              <p
+                role="alert"
+                className="rounded-md border border-red-800 bg-red-950/40 px-4 py-3 text-sm text-red-300"
+              >
+                {submitError}
+              </p>
+            )}
 
             <div className="flex gap-3">
               <button

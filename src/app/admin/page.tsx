@@ -2,27 +2,36 @@ import Link from "next/link";
 import {
   getAllMembersAdmin,
   getAllListingsAdmin,
+  getMegaTourPaymentsAdmin,
 } from "@/lib/admin-queries";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminOverviewPage() {
-  const [members, allListings] = await Promise.all([
+  const [members, allListings, payments] = await Promise.all([
     getAllMembersAdmin(),
     getAllListingsAdmin(),
+    getMegaTourPaymentsAdmin(),
   ]);
 
   const pendingApproval = members.filter((m) => !m.approved);
   const activeListings = allListings.filter((l) => l.status === "ACTIVE");
+  const pendingPayments = payments.filter((p) => !p.confirmed);
 
   return (
     <div>
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-3">
         <StatCard
           label="Members"
           value={members.length}
           sub={`${pendingApproval.length} pending approval`}
           href="/admin/members"
+        />
+        <StatCard
+          label="Mega Tour"
+          value={payments.length}
+          sub={`${pendingPayments.length} payment${pendingPayments.length === 1 ? "" : "s"} to confirm`}
+          href="/admin/mega-tour"
         />
         <StatCard
           label="Marketplace"

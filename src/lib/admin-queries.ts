@@ -1,4 +1,4 @@
-import { db, users, listings } from "@/db";
+import { db, users, listings, megaTourPayments } from "@/db";
 import { desc } from "drizzle-orm";
 
 export async function getAllMembersAdmin() {
@@ -40,3 +40,11 @@ export async function getAllMedalsAdmin() {
   return db.query.medals.findMany();
 }
 
+
+export async function getMegaTourPaymentsAdmin() {
+  return db.query.megaTourPayments.findMany({
+    orderBy: [desc(megaTourPayments.createdAt)],
+    // Only the confirming admin's name — never their password hash/tokens.
+    with: { confirmedBy: { columns: { name: true } } },
+  });
+}

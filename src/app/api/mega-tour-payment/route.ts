@@ -1,145 +1,157 @@
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
-import { google } from "googleapis";
+import { z } from "zod";
+import { desc, eq, or } from "drizzle-orm";
+import { db, megaTourPayments } from "@/db";
+import { escapeHtml } from "@/lib/email";
+import { id } from "@/lib/utils";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
-export function normalizePhone(value: string) {
-  return (value ?? "").replace(/\D/g, "");
+// Digits only, with Bangladesh's +88 country code dropped, so "+880 1700-000000"
+// and "01700000000" are the same number.
+export function normalizePhone(value: string | null | undefined) {
+  const digits = (value ?? "").replace(/\D/g, "");
+  return digits.length === 13 && digits.startsWith("8801")
+    ? digits.slice(2)
+    : digits;
 }
 
-export function findMatchingRow(rows: string[][], phone: string) {
-  const normalizedPhone = normalizePhone(phone);
-  return rows.find((row) => {
-    const registrationPhone = normalizePhone(row[2] ?? "");
-    const senderPhone = normalizePhone(row[8] ?? "");
-    return registrationPhone === normalizedPhone || senderPhone === normalizedPhone;
-  });
-}
+const METHOD_LABEL: Record<string, string> = {
+  bkash: "bKash",
+  nagad: "Nagad",
+  rocket: "Rocket",
+  bank: "BRAC Bank",
+};
 
-async function appendToSheet(values: string[]) {
-  const auth = new google.auth.GoogleAuth({
-    credentials: {
-      client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-      private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
-    },
-    scopes: ["https://www.googleapis.com/auth/spreadsheets"],
-  });
+const optional = (max: number) =>
+  z.string().trim().max(max).optional().or(z.literal(""));
 
-  const sheets = google.sheets({ version: "v4", auth });
+const schema = z.object({
+  name: z.string().trim().min(2).max(100),
+  phone: z.string().trim().min(6).max(20),
+  role: z.enum(["rider", "pillion"]),
+  bikeModel: optional(100),
+  regNumber: optional(100),
+  bloodGroup: optional(10),
+  emergencyContact: z.string().trim().min(1).max(100),
+  reference: optional(100),
+  method: z.enum(["bkash", "nagad", "rocket", "bank"]),
+  senderNumber: optional(40),
+  txId: z.string().trim().min(1).max(100),
+});
 
-  await sheets.spreadsheets.values.append({
-    spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: "Sheet1!A1",
-    valueInputOption: "USER_ENTERED",
-    requestBody: {
-      values: [values],
-    },
-  });
-}
-
-async function getSheetRows() {
-  const auth = new google.auth.GoogleAuth({
-    credentials: {
-      client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-      private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
-    },
-    scopes: ["https://www.googleapis.com/auth/spreadsheets"],
-  });
-  const sheets = google.sheets({ version: "v4", auth });
-  const res = await sheets.spreadsheets.values.get({
-    spreadsheetId: process.env.GOOGLE_SHEET_ID,
-    range: "Sheet1!A:L",
-  });
-  return res.data.values ?? [];
-}
-
+// Public "Check Payment" lookup — matches either the registration phone or
+// the number the payment was sent from. Returns only what the member
+// already knows about their own submission.
 export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const phone = searchParams.get("phone")?.trim();
-  if (!phone) return NextResponse.json({ error: "phone required" }, { status: 400 });
+  const phone = normalizePhone(new URL(req.url).searchParams.get("phone"));
+  if (phone.length < 6) {
+    return NextResponse.json({ error: "phone required" }, { status: 400 });
+  }
 
   try {
-    const rows = await getSheetRows();
-    const row = findMatchingRow(rows, phone);
+    const row = await db.query.megaTourPayments.findFirst({
+      where: or(
+        eq(megaTourPayments.phoneDigits, phone),
+        eq(megaTourPayments.senderDigits, phone)
+      ),
+      orderBy: [desc(megaTourPayments.createdAt)],
+    });
     if (!row) return NextResponse.json({ found: false });
     return NextResponse.json({
       found: true,
-      submittedAt: row[0] ?? "",
-      name: row[1] ?? "",
-      role: row[3] ?? "",
-      method: row[7] ?? "",
-      txId: row[9] ?? "",
-      bloodGroup: row[10] ?? "",
-      confirmed: (row[11] ?? "").toString().trim().toLowerCase() === "done",
+      submittedAt: new Date(row.createdAt + "Z").toLocaleString("bn-BD", {
+        timeZone: "Asia/Dhaka",
+      }),
+      name: row.name,
+      role: row.role === "PILLION" ? "Pillion" : "Rider",
+      method: row.method,
+      txId: row.txId,
+      bloodGroup: row.bloodGroup ?? "",
+      confirmed: row.confirmed,
     });
   } catch (e) {
-    console.error("Sheet read error:", e);
-    return NextResponse.json({ error: "sheet error" }, { status: 500 });
+    console.error("[mega-tour-payment] lookup failed:", e);
+    return NextResponse.json({ error: "lookup failed" }, { status: 500 });
   }
 }
 
 export async function POST(req: Request) {
-  const { name, phone, bloodGroup, role, bikeModel, regNumber, emergencyContact, reference, senderNumber, txId, method } =
-    await req.json();
+  const parsed = schema.safeParse(await req.json().catch(() => null));
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "কিছু তথ্য ঠিক নেই। সব ঘর ঠিকভাবে পূরণ করে আবার চেষ্টা করুন।" },
+      { status: 400 }
+    );
+  }
+  const d = parsed.data;
+  const isPillion = d.role === "pillion";
+  const method = METHOD_LABEL[d.method];
 
-  const methodLabel: Record<string, string> = {
-    bkash: "bKash",
-    nagad: "Nagad",
-    rocket: "Rocket",
-    bank: "BRAC Bank",
+  const row = {
+    id: id(),
+    name: d.name,
+    phone: d.phone,
+    phoneDigits: normalizePhone(d.phone),
+    role: isPillion ? ("PILLION" as const) : ("RIDER" as const),
+    // Pillions don't ride their own bike — don't keep the form's leftovers.
+    bikeModel: isPillion ? null : d.bikeModel || null,
+    regNumber: isPillion ? null : d.regNumber || null,
+    bloodGroup: d.bloodGroup || null,
+    emergencyContact: d.emergencyContact,
+    reference: d.reference || null,
+    method,
+    senderNumber: d.senderNumber || null,
+    senderDigits: normalizePhone(d.senderNumber) || null,
+    txId: d.txId,
   };
 
-  const submittedAt = new Date().toLocaleString("bn-BD", { timeZone: "Asia/Dhaka" });
-
-  // Save to Google Sheet
+  // The database is the record of truth: if this fails, the member must
+  // be told (they used to see "success" while nothing was saved).
   try {
-    await appendToSheet([
-      submittedAt,
-      name,
-      phone,
-      role === "pillion" ? "Pillion" : "Rider",
-      bikeModel ?? "",
-      regNumber ?? "",
-      emergencyContact,
-      methodLabel[method] ?? method,
-      senderNumber ?? "",
-      txId,
-      bloodGroup ?? "",
-      "", // L: payment confirmation ("done"), filled manually by admin
-      reference ?? "",
-    ]);
+    await db.insert(megaTourPayments).values(row);
   } catch (e) {
-    console.error("Google Sheets error:", e);
+    console.error("[mega-tour-payment] save failed:", e);
+    return NextResponse.json(
+      {
+        error:
+          "দুঃখিত, আপনার তথ্য সেভ করা যায়নি। কিছুক্ষণ পর আবার চেষ্টা করুন, অথবা এডমিনের সাথে যোগাযোগ করুন।",
+      },
+      { status: 500 }
+    );
   }
 
-  // Send email notification
-  if (resend) {
+  // Admin notification — a convenience copy; failure doesn't undo the save.
+  if (resend && process.env.ADMIN_EMAIL) {
+    const submittedAt = new Date().toLocaleString("bn-BD", { timeZone: "Asia/Dhaka" });
+    const e = (v: string | null | undefined) => escapeHtml(v || "—");
     try {
       await resend.emails.send({
         from: process.env.EMAIL_FROM as string,
-        to: process.env.ADMIN_EMAIL as string,
+        to: process.env.ADMIN_EMAIL,
         subject: `Mega Tour 2026 — নতুন Payment Confirmation`,
         html: `
           <h2>Mega Tour 2026 Payment Confirmation</h2>
           <table cellpadding="8" style="border-collapse:collapse">
             <tr><td><b>সময়</b></td><td>${submittedAt}</td></tr>
-            <tr><td><b>নাম</b></td><td>${name}</td></tr>
-            <tr><td><b>ফোন</b></td><td>${phone}</td></tr>
-            <tr><td><b>ধরন</b></td><td>${role === "pillion" ? "Pillion" : "Rider"}</td></tr>
-            ${role !== "pillion" ? `<tr><td><b>বাইক</b></td><td>${bikeModel}</td></tr><tr><td><b>রেজিস্ট্রেশন</b></td><td>${regNumber}</td></tr>` : ""}
-            <tr><td><b>Emergency Contact</b></td><td>${emergencyContact}</td></tr>
-            <tr><td><b>Reference</b></td><td>${reference ?? "—"}</td></tr>
-            <tr><td><b>Payment Method</b></td><td>${methodLabel[method] ?? method}</td></tr>
-            <tr><td><b>Sender Number</b></td><td>${senderNumber}</td></tr>
-            <tr><td><b>Transaction ID</b></td><td>${txId}</td></tr>
-            <tr><td><b>রক্তের গ্রুপ</b></td><td>${bloodGroup ?? "—"}</td></tr>
+            <tr><td><b>নাম</b></td><td>${e(row.name)}</td></tr>
+            <tr><td><b>ফোন</b></td><td>${e(row.phone)}</td></tr>
+            <tr><td><b>ধরন</b></td><td>${isPillion ? "Pillion" : "Rider"}</td></tr>
+            ${isPillion ? "" : `<tr><td><b>বাইক</b></td><td>${e(row.bikeModel)}</td></tr><tr><td><b>রেজিস্ট্রেশন</b></td><td>${e(row.regNumber)}</td></tr>`}
+            <tr><td><b>Emergency Contact</b></td><td>${e(row.emergencyContact)}</td></tr>
+            <tr><td><b>Reference</b></td><td>${e(row.reference)}</td></tr>
+            <tr><td><b>Payment Method</b></td><td>${e(method)}</td></tr>
+            <tr><td><b>Sender Number</b></td><td>${e(row.senderNumber)}</td></tr>
+            <tr><td><b>Transaction ID</b></td><td>${e(row.txId)}</td></tr>
+            <tr><td><b>রক্তের গ্রুপ</b></td><td>${e(row.bloodGroup)}</td></tr>
             <tr><td><b>Amount</b></td><td>৳৩,০৬০</td></tr>
           </table>
+          <p>Admin panel → Mega Tour থেকে confirm করুন।</p>
         `,
       });
-    } catch {
-      // email failure is non-fatal
+    } catch (err) {
+      console.error("[mega-tour-payment] admin email failed:", err);
     }
   }
 
