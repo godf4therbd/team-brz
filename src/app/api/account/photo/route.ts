@@ -20,7 +20,10 @@ const ALLOWED_TYPES = new Set([
   "image/webp",
   "image/gif",
 ]);
-const MAX_BYTES = 5 * 1024 * 1024; // 5MB
+// The browser (components/photo-upload.tsx) shrinks and converts whatever
+// image a member picks to JPEG before sending it, so in practice uploads
+// arrive well under this. 4.5MB is also Vercel's hard request-body cap.
+const MAX_BYTES = 4.5 * 1024 * 1024;
 
 const EXT_BY_TYPE: Record<string, string> = {
   "image/jpeg": "jpg",
@@ -78,13 +81,13 @@ export async function POST(req: NextRequest) {
   }
   if (!ALLOWED_TYPES.has(file.type)) {
     return NextResponse.json(
-      { error: "Only JPEG, PNG, WebP, or GIF images are allowed." },
+      { error: "Couldn't process that image. Please try a JPG or PNG." },
       { status: 400 }
     );
   }
   if (file.size > MAX_BYTES) {
     return NextResponse.json(
-      { error: "Image must be 5MB or smaller." },
+      { error: "Image is too large to upload. Please try a smaller photo." },
       { status: 400 }
     );
   }
